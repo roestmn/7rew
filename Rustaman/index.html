@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Mini OS Potret</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --fg:#15171a;
+      --muted:#7b8190;
+      --card:#ffffff;
+      --accent:#8ad3c3; /* mint default */
+      --accent-2:#f7bfd1; /* peach/pink */
+      --shadow:0 10px 25px rgba(0,0,0,.08);
+      --radius:18px;
+  /* Default wallpaper 2.jpg; fallback akan diganti JS jika tidak ada */
+  --wallpaper:url(2.jpg) center / cover no-repeat;
+      --scale:1;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--fg); background:#0d0f14; display:grid; place-items:center; height:100vh; overflow:hidden;
+    }
+
+    /* Frame ponsel potret */
+    /* Phone frame (lebih rounded & responsive) */
+    .phone{
+      position:relative; aspect-ratio:9/19.5; height:min(calc(100vh - 40px), 860px); max-height:860px; max-width:440px; width:auto; 
+      background:#0d0f14; border-radius:60px; 
+      box-shadow:
+        0 24px 50px rgba(0,0,0,.28), /* dasar drop shadow */
+        inset 0 0 0 10px #0d0f14,      /* bezel gelap */
+        0 0 0 1px rgba(255,255,255,.06), /* outline halus */
+        0 0 26px 6px rgba(255,255,255,.07), /* glow putih lembut */
+        0 0 28px 8px rgba(138,211,195,.25); /* glow aksen redup */
+      overflow:hidden; border:1px solid rgba(255,255,255,.05);
+      transition:border-radius .35s ease, height .35s ease, box-shadow .6s ease;
+    }
+    .phone::before{
+      content:""; position:absolute; inset:10px; background:var(--wallpaper); border-radius:48px; z-index:0; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .phone > *{position:relative; z-index:1;}
+    .glass{backdrop-filter:saturate(1.3) blur(10px); -webkit-backdrop-filter:saturate(1.3) blur(10px);}
+
+    /* Status bar (diperbaiki agar tidak mentok ke tepi) */
+    .status{
+      position:absolute; top:10px; left:50%; transform:translateX(-50%); width:calc(100% - 140px); max-width:300px; height:44px;
+      display:flex; align-items:center; justify-content:space-between; padding:0 14px;
+      color:#111; font-weight:600; text-shadow:0 1px 0 rgba(255,255,255,.6); border-radius:20px; background:rgba(255,255,255,.55); backdrop-filter:blur(6px) saturate(1.4); -webkit-backdrop-filter:blur(6px) saturate(1.4);
+      box-shadow:0 4px 12px rgba(0,0,0,.08), inset 0 0 0 1px rgba(0,0,0,.06);
+      font-size:13px;
+    }
+    .pill-notch{display:none}
+
+    /* Home */
+  /* Spasi tambahan di bawah status bar */
+  .home{position:absolute; inset:70px 0 72px 0; padding:18px; overflow:auto}
+  .widgets{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:8px}
+  .widget{background:rgba(255,255,255,.35); backdrop-filter:blur(12px) saturate(1.6); -webkit-backdrop-filter:blur(12px) saturate(1.6); border:1px solid rgba(255,255,255,.5); border-radius:var(--radius); padding:12px; box-shadow:var(--shadow); position:relative; overflow:hidden}
+  .widget h4{margin:0 0 6px 0; font-size:13px; color:#2b2f36; font-weight:600; letter-spacing:.5px}
+  /* Clock widget enhanced */
+  .widget-clock{grid-column:1 / -1; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:170px; padding:18px;}
+  .widget-clock h4{position:absolute; top:10px; left:16px; opacity:.4; font-size:11px; text-transform:uppercase; letter-spacing:1.5px}
+  .clock{font-family:'Space Grotesk', 'Segoe UI', sans-serif; font-size:72px; font-weight:600; letter-spacing:2px; line-height:1; background:linear-gradient(135deg,var(--fg), var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 4px 10px rgba(0,0,0,.15));}
+  .date{margin-top:8px; font-family:'Space Grotesk', 'Segoe UI', sans-serif; font-size:16px; font-weight:500; letter-spacing:.5px; color:#ffffff; text-shadow:0 1px 3px rgba(0,0,0,.35);}
+  @media (max-width:520px){ .clock{font-size:58px;} .widget-clock{min-height:150px;} }
+    .quote{font-size:12px; color:#444}
+
+    .apps{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:10px; justify-items:center; align-items:start}
+    .app{
+      text-align:center; cursor:pointer; user-select:none; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:6px;
+    }
+    .app .icon{height:58px; border-radius:16px; display:grid; place-items:center; box-shadow:var(--shadow); border:1px solid rgba(0,0,0,.06)}
+  .app .label{margin-top:8px; font-size:12px; color:#ffffff; text-shadow:0 1px 2px rgba(0,0,0,.35)}
+
+    /* Dock */
+    .dock{position:absolute; inset:auto 0 12px 0; display:flex; justify-content:center}
+    .dock-inner{display:flex; gap:14px; background:rgba(255, 255, 255, 0.356); padding:10px; border-radius:30px; box-shadow:var(--shadow); border:1px solid rgba(0,0,0,.06)}
+    .dock .icon{width:56px; height:56px}
+
+    /* App sheets */
+    .sheet{position:absolute; inset:0; background:rgba(13,15,20,.15); opacity:0; pointer-events:none; transition:.25s ease}
+    .sheet.active{opacity:1; pointer-events:auto}
+  .card{position:absolute; left:12px; right:12px; bottom:-100%; height:78%; background:var(--card); border-radius:28px 28px 0 0; box-shadow:0 -25px 50px rgba(0,0,0,.25); transition:.35s ease; touch-action:none;}
+  .card::before{content:""; position:absolute; top:8px; left:50%; transform:translateX(-50%); width:64px; height:5px; border-radius:3px; background:rgba(255,255,255,.35);}
+    .sheet.active .card{bottom:0}
+    .card header{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #eef0f4}
+    .card header h3{margin:0; font-size:16px}
+    .card header .btns{display:flex; gap:8px}
+    .btn{border:1px solid #e8ebf0; background:#fff; padding:8px 12px; border-radius:12px; font-size:12px; cursor:pointer}
+    .btn.primary{background:var(--accent); border-color:transparent}
+    .content{padding:14px; height:calc(100% - 54px); overflow:auto}
+
+    /* Calculator */
+    .calc{display:grid; grid-template-rows:auto 1fr}
+    .calc-screen{background:#101417; color:#e7f2f1; padding:12px; border-radius:14px; font-size:28px; text-align:right; height:80px; display:grid; align-content:center}
+    .pad{margin-top:12px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+    .key{padding:14px; border-radius:14px; background:#f4f6fb; border:1px solid #e7ebf4; text-align:center; font-weight:600; cursor:pointer; user-select:none}
+    .key.op{background:#e9f7f3}
+    .key.eq{background:var(--accent);}
+
+    /* Notes */
+    .notes textarea{width:100%; height:380px; border:1px solid #e7ebf4; border-radius:14px; padding:12px; resize:none; font-size:14px}
+    .notes small{color:var(--muted)}
+
+    /* Timer */
+    .timer .big{font-size:40px; text-align:center; margin:10px 0}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .row input[type=number]{width:80px; padding:10px; border:1px solid #e7ebf4; border-radius:12px}
+
+    /* Settings */
+    .settings .row{justify-content:space-between}
+    .chip{padding:8px 12px; border-radius:999px; border:1px solid #e7ebf4; cursor:pointer}
+
+  /* Wallpaper image thumbs */
+  .wall-thumbs{display:flex; flex-wrap:wrap; gap:8px; max-width:100%}
+  .wall-thumb{width:54px; height:54px; border-radius:14px; background:#e3e6ec; background-size:cover; background-position:center; cursor:pointer; position:relative; border:2px solid transparent; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .wall-thumb.active{border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.15)}
+
+  /* (Overlay kunci potret dihapus sesuai permintaan) */
+
+    /* Icons */
+    /* Unified icon style (memperbaiki ukuran tidak konsisten) */
+  .icon{width:58px; height:58px; background:rgba(255,255,255,0.28); color:#0d0f14; font-weight:900; display:grid; place-items:center; font-size:32px; line-height:1; border-radius:22px; box-shadow:0 4px 12px rgba(0,0,0,.12); backdrop-filter:blur(10px) saturate(1.6); -webkit-backdrop-filter:blur(10px) saturate(1.6); border:1px solid rgba(255,255,255,0.55);}
+  .icon:hover{background:rgba(255,255,255,0.4);}
+  .apps .app:active .icon, .dock-inner .icon.app:active{background:rgba(255,255,255,0.55);}
+  .apps .app .icon{border:1px solid rgba(0,0,0,.06); margin:0 auto;}
+    .dock .icon{width:56px; height:56px; border-radius:20px;}
+  /* Perbaikan: ikon di dock jangan ikut layout .app (flex kolom) */
+  .dock-inner .icon.app{display:flex; align-items:center; justify-content:center; gap:0; padding:0 0 0 2px;}
+  .dock-inner .icon.app .label{display:none}
+  .dock-inner .icon.app{font-size:30px;}
+  /* SVG icons */
+  .icon svg{width:60%; height:60%; stroke:#0d0f14;}
+  header .i.h{width:20px; height:20px; vertical-align:middle; margin-right:6px;}
+  /* Lock Screen */
+  .lock-screen{position:fixed; inset:0; background:var(--wallpaper); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(30px) brightness(.9); -webkit-backdrop-filter:blur(30px) brightness(.9); transition:opacity .5s ease, transform .6s ease;}
+  .lock-screen.hide{opacity:0; pointer-events:none; transform:scale(1.03);}
+  .lock-inner{text-align:center; color:#fff; text-shadow:0 4px 18px rgba(0,0,0,.5); max-width:340px;}
+  .lock-time{font-family:'Space Grotesk', 'Segoe UI', sans-serif; font-size:82px; font-weight:600; letter-spacing:2px; line-height:1;}
+  .lock-date{margin-top:8px; font-size:18px; font-weight:500; opacity:.9; letter-spacing:.5px;}
+  .fingerprint-wrap{margin-top:48px;}
+  .fingerprint{position:relative; width:140px; height:140px; margin:0 auto; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .fingerprint::before{content:""; position:absolute; inset:0; border-radius:50%; background:rgba(255,255,255,.18); backdrop-filter:blur(12px) saturate(1.4); -webkit-backdrop-filter:blur(12px) saturate(1.4); border:1px solid rgba(255,255,255,.55); box-shadow:0 6px 24px rgba(0,0,0,.4),0 0 0 4px rgba(255,255,255,.05);}
+  .fp-lines{position:absolute; inset:18px; border:2px solid rgba(255,255,255,.5); border-radius:50%; mask:radial-gradient(circle at 50% 50%, transparent 34%, #000 35%);}
+  .fp-ring{position:absolute; inset:0; border:3px solid rgba(255,255,255,.25); border-radius:50%; animation:fpSpin 7s linear infinite;}
+  .fp-ring.r2{animation-duration:11s; animation-direction:reverse;}
+  @keyframes fpSpin{to{transform:rotate(360deg)}}
+  .lock-hint{margin-top:168px; font-size:13px; letter-spacing:.8px; opacity:.85;}
+  .unlocking .lock-hint{animation:blink 1.2s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+  .fingerprint.success .fp-lines{opacity:0; transition:.4s ease}
+  .fingerprint.success .fp-ring{border-color:rgba(255,255,255,.8); box-shadow:0 0 22px 8px rgba(255,255,255,.5),0 0 40px -4px var(--accent);}
+  .fingerprint.success::after{content:""; position:absolute; inset:-8px; border-radius:50%; background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.65), transparent 70%); animation:fpPop .7s ease both;}
+  @keyframes fpPop{0%{opacity:0; transform:scale(.6)}100%{opacity:1; transform:scale(1)}}
+  .relock-btn{position:fixed; bottom:14px; right:14px; z-index:10; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.4); color:#fff; padding:8px 14px; border-radius:14px; font-size:12px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);}
+  .relock-btn:hover{background:rgba(255,255,255,.28)}
+
+    /* Desktop enhancements: auto scale & center; allow bigger canvas */
+    @media (min-width:640px){
+      body{padding:20px;}
+      .phone{height:min(calc(100vh - 60px), 880px);}
+    }
+    @media (min-width:1100px){
+      .phone{height:min(calc(100vh - 80px), 900px);}
+    }
+    /* Kecil: biar muat di layar sempit */
+    @media (max-width:420px){
+      .phone{width:100vw; height:100vh; border-radius:0; box-shadow:none; inset:0; max-height:100vh;}
+      body{display:block; overflow:auto;}
+    }
+  </style>
+</head>
+<body>
+  <!-- SVG Symbols (ikon kustom) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="i-calc" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="4" ry="4" fill="none" stroke="currentColor" stroke-width="2" />
+      <rect x="7" y="6" width="10" height="4" rx="1" stroke="currentColor" stroke-width="2" fill="none" />
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M8.2 13h.01" />
+        <path d="M11.95 13h.01" />
+        <path d="M15.7 13h.01" />
+        <path d="M8.2 16.5h.01" />
+        <path d="M11.95 16.5h.01" />
+        <path d="M15.7 16.5h.01" />
+      </g>
+    </symbol>
+    <symbol id="i-notes" viewBox="0 0 24 24">
+      <path d="M6 3h9l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+      <path d="M15 3v5h5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none" />
+      <path d="M8.5 13h7M8.5 16h5M8.5 10h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24">
+      <circle cx="12" cy="14" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+      <path d="M12 14 9.5 11.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M9 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      <path d="M15.5 5.5 17 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+      <path d="M19.4 15a1 1 0 0 0 .2-1.1l-.7-1.3a1 1 0 0 1 0-.92l.7-1.3a1 1 0 0 0-.2-1.1l-1.05-1.05a1 1 0 0 0-1.1-.2l-1.3.7a1 1 0 0 1-.92 0l-1.3-.7a1 1 0 0 0-1.1.2L9 7.6a1 1 0 0 0-.2 1.1l.7 1.3a1 1 0 0 1 0 .92l-.7 1.3a1 1 0 0 0 .2 1.1L10.05 17a1 1 0 0 0 1.1.2l1.3-.7a1 1 0 0 1 .92 0l1.3.7a1 1 0 0 0 1.1-.2L19.4 15Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+    </symbol>
+    <symbol id="i-gallery" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="16" rx="3" ry="3" stroke="currentColor" stroke-width="2" fill="none" />
+      <circle cx="9" cy="10" r="2" stroke="currentColor" stroke-width="2" fill="none" />
+      <path d="M7 17l4-4 3 3 3-3 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </symbol>
+    <symbol id="i-music" viewBox="0 0 24 24">
+      <path d="M9 18V5l9-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+      <circle cx="7" cy="18" r="2.5" stroke="currentColor" stroke-width="2" fill="none" />
+      <circle cx="18" cy="16" r="2.5" stroke="currentColor" stroke-width="2" fill="none" />
+    </symbol>
+    <symbol id="i-weather" viewBox="0 0 24 24">
+      <circle cx="7" cy="11" r="4" stroke="currentColor" stroke-width="2" fill="none" />
+      <path d="M13 7a5 5 0 0 1 5 5c0 .34-.03.67-.1.99A4 4 0 0 1 21 17a4 4 0 0 1-4 4H7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+    </symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24">
+      <rect x="3" y="5" width="18" height="16" rx="3" ry="3" stroke="currentColor" stroke-width="2" fill="none" />
+      <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      <rect x="8" y="13" width="3" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none" />
+      <rect x="13" y="13" width="3" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none" />
+    </symbol>
+  </svg>
+  <div class="phone lock-portrait" id="phone">
+    <div class="status">
+      <div id="net">LTE ▴▴▴</div>
+      <div id="time">12:00</div>
+      <div>🔋 100%</div>
+      <div class="pill-notch"></div>
+    </div>
+
+    <div class="home" id="home">
+      <div class="widgets">
+        <div class="widget widget-clock">
+          <h4>JAM</h4>
+          <div class="clock" id="clock">12:00</div>
+          <div class="date" id="date">Kamis, 11 Sep</div>
+        </div>
+        <div class="widget">
+          <h4>Kutipan Hari Ini</h4>
+          <div class="quote" id="quote">“Stay hungry, stay foolish.”</div>
+        </div>
+        <div class="widget" id="w-battery">
+          <h4>Baterai</h4>
+          <div class="battery-bar"><span id="bat-fill"></span></div>
+          <div class="battery-text" id="bat-text">--%</div>
+        </div>
+        <div class="widget" id="w-weather">
+          <h4>Cuaca</h4>
+            <div class="weather-main" id="weather-main">--°C</div>
+            <small id="weather-desc">Memuat...</small>
+        </div>
+        <div class="widget" id="w-steps">
+          <h4>Langkah</h4>
+          <div class="steps" id="steps-count">0</div>
+          <small id="steps-goal">Target 5.000</small>
+        </div>
+      </div>
+
+      <div class="apps">
+        <div class="app" data-open="calc">
+          <div class="icon" aria-label="Kalkulator"><svg class="i"><use href="#i-calc"/></svg></div>
+          <div class="label">Kalkulator</div>
+        </div>
+        <div class="app" data-open="notes">
+          <div class="icon" aria-label="Catatan"><svg class="i"><use href="#i-notes"/></svg></div>
+          <div class="label">Catatan</div>
+        </div>
+        <div class="app" data-open="timer">
+          <div class="icon" aria-label="Timer"><svg class="i"><use href="#i-timer"/></svg></div>
+          <div class="label">Timer</div>
+        </div>
+        <div class="app" data-open="settings">
+          <div class="icon" aria-label="Pengaturan"><svg class="i"><use href="#i-settings"/></svg></div>
+          <div class="label">Pengaturan</div>
+        </div>
+        <div class="app" data-open="gallery">
+          <div class="icon" aria-label="Galeri"><svg class="i"><use href="#i-gallery"/></svg></div>
+          <div class="label">Galeri</div>
+        </div>
+        <div class="app" data-open="music">
+          <div class="icon" aria-label="Musik"><svg class="i"><use href="#i-music"/></svg></div>
+          <div class="label">Musik</div>
+        </div>
+        <div class="app" data-open="weather">
+          <div class="icon" aria-label="Cuaca"><svg class="i"><use href="#i-weather"/></svg></div>
+          <div class="label">Cuaca</div>
+        </div>
+        <div class="app" data-open="calendar">
+          <div class="icon" aria-label="Kalender"><svg class="i"><use href="#i-calendar"/></svg></div>
+          <div class="label">Kalender</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dock">
+      <div class="dock-inner glass">
+  <div class="icon app" data-open="calc" aria-label="Kalkulator"><svg class="i"><use href="#i-calc"/></svg></div>
+  <div class="icon app" data-open="notes" aria-label="Catatan"><svg class="i"><use href="#i-notes"/></svg></div>
+  <div class="icon app" data-open="timer" aria-label="Timer"><svg class="i"><use href="#i-timer"/></svg></div>
+  <div class="icon app" data-open="settings" aria-label="Pengaturan"><svg class="i"><use href="#i-settings"/></svg></div>
+  <div class="icon app" data-open="music" aria-label="Musik"><svg class="i"><use href="#i-music"/></svg></div>
+      </div>
+    </div>
+
+    <!-- Sheets / Apps -->
+    <div class="sheet" id="sheet-calc">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-calc"/></svg> Kalkulator</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content calc">
+          <div class="calc-screen" id="calc-screen">0</div>
+          <div class="pad" id="pad">
+            <div class="key op" data-k="C">C</div>
+            <div class="key op" data-k="DEL">DEL</div>
+            <div class="key op" data-k="(">(</div>
+            <div class="key op" data-k=")">)</div>
+            <div class="key" data-k="7">7</div>
+            <div class="key" data-k="8">8</div>
+            <div class="key" data-k="9">9</div>
+            <div class="key op" data-k="/">÷</div>
+            <div class="key" data-k="4">4</div>
+            <div class="key" data-k="5">5</div>
+            <div class="key" data-k="6">6</div>
+            <div class="key op" data-k="*">×</div>
+            <div class="key" data-k="1">1</div>
+            <div class="key" data-k="2">2</div>
+            <div class="key" data-k="3">3</div>
+            <div class="key op" data-k="-">−</div>
+            <div class="key" data-k="0">0</div>
+            <div class="key" data-k=",">,</div>
+            <div class="key op" data-k=".">.</div>
+            <div class="key eq" data-k="=">=</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet-notes">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-notes"/></svg> Catatan</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content notes">
+          <textarea id="notes" placeholder="Tulis catatan..."></textarea>
+          <div class="row" style="margin-top:8px">
+            <small id="notes-status">Tersimpan.</small>
+            <button class="btn" id="notes-clear">Bersihkan</button>
+            <button class="btn primary" id="notes-export">Ekspor .txt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet-timer">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-timer"/></svg> Timer</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content timer">
+          <div class="row">
+            <label>Menit</label>
+            <input type="number" id="t-min" min="0" value="0" />
+            <label>Detik</label>
+            <input type="number" id="t-sec" min="0" max="59" value="30" />
+            <button class="btn primary" id="t-start">Mulai</button>
+            <button class="btn" id="t-stop">Stop</button>
+            <button class="btn" id="t-reset">Reset</button>
+          </div>
+          <div class="big" id="t-display">00:30</div>
+          <div class="row">
+            <small>Suara bel akan berbunyi saat selesai.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet-settings">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-settings"/></svg> Pengaturan</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content settings">
+          <div class="row">
+            <div>
+              <div><strong>Tema</strong></div>
+              <div class="row" style="margin-top:8px">
+                <span class="chip" data-theme="mint">Mint</span>
+                <span class="chip" data-theme="peach">Peach</span>
+                <span class="chip" data-theme="lilac">Lilac</span>
+              </div>
+            </div>
+            <div>
+              <div><strong>Skala UI</strong></div>
+              <input type="range" id="scale" min="0.8" max="1.2" step="0.02" value="1" />
+            </div>
+          </div>
+          <hr />
+          <!-- Opsi kunci potret dihapus -->
+          <div class="row">
+            <div>
+              <div><strong>Wallpaper</strong></div>
+              <!-- Tombol gradient wallpaper dihapus -->
+              <div class="row" style="margin-top:14px; gap:8px; align-items:flex-start; flex-wrap:wrap">
+                <button class="btn" id="wall-random">Acak Gambar</button>
+                <div class="wall-thumbs" id="wallThumbs"></div>
+                <small style="flex-basis:100%; color:var(--muted)">Letakkan 1.jpg, 2.jpg, 3.jpg ... di folder yang sama.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div class="sheet" id="sheet-gallery">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-gallery"/></svg> Galeri</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content" id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px"></div>
+      </div>
+    </div>
+
+    <!-- Music -->
+    <div class="sheet" id="sheet-music">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-music"/></svg> Musik</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content music">
+          <div id="music-list"></div>
+          <div style="margin-top:12px">
+            <audio id="player" controls style="width:100%"></audio>
+          </div>
+          <small>Letakkan file track1.mp3, track2.mp3, ... di folder yang sama untuk otomatis muncul.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weather Full -->
+    <div class="sheet" id="sheet-weather">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-weather"/></svg> Cuaca</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content" id="weather-full"></div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="sheet" id="sheet-calendar">
+      <div class="card">
+        <header>
+          <h3><svg class="i h"><use href="#i-calendar"/></svg> Kalender</h3>
+          <div class="btns"><button class="btn" data-close>Home</button></div>
+        </header>
+        <div class="content" id="calendar"></div>
+      </div>
+    </div>
+
+  <!-- Overlay dihapus -->
+  </div>
+
+  <div id="lockScreen" class="lock-screen" aria-hidden="false">
+    <div class="lock-inner">
+      <div class="lock-time" id="lsTime">12:00</div>
+      <div class="lock-date" id="lsDate">Kamis, 11 Sep</div>
+      <div class="fingerprint-wrap">
+        <div class="fingerprint" id="fpArea">
+          <div class="fp-ring r1"></div>
+          <div class="fp-ring r2"></div>
+          <div class="fp-lines"></div>
+          <div class="lock-hint" id="lockHint">Sentuh fingerprint</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="relock-btn" id="relockBtn" style="display:none">Kunci Lagi</button>
+
+  <script>
+    // Fallback jika 2.jpg tidak ada (jangan paksa gradient)
+    (function(){
+      const test=new Image();
+      test.onerror=()=>{
+        if(!localStorage.getItem('miniOS.wallimg')){
+          // pakai warna netral agar tidak error visual
+          document.documentElement.style.setProperty('--wallpaper','#10131a');
+        }
+      };
+      test.src='2.jpg';
+    })();
+    // === Status clock ===
+    const fmt = (n)=> String(n).padStart(2,'0');
+    const timeEl = document.getElementById('time');
+    const clockEl = document.getElementById('clock');
+    function tick(){
+      const d=new Date();
+      const t=fmt(d.getHours())+":"+fmt(d.getMinutes());
+      timeEl.textContent=t; clockEl.textContent=t+":"+fmt(d.getSeconds());
+      const dateEl=document.getElementById('date');
+      if(dateEl){
+        const hari=d.toLocaleString('id-ID',{weekday:'long'});
+        const bln=d.toLocaleString('id-ID',{month:'short'});
+        dateEl.textContent= hari.charAt(0).toUpperCase()+hari.slice(1)+", "+d.getDate()+" "+bln;
+      }
+    }
+    setInterval(tick,1000); tick();
+
+    // === Lock Screen ===
+    const lockScreen=document.getElementById('lockScreen');
+    const fpArea=document.getElementById('fpArea');
+    const lockHint=document.getElementById('lockHint');
+    const relockBtn=document.getElementById('relockBtn');
+    const lsTime=document.getElementById('lsTime');
+    const lsDate=document.getElementById('lsDate');
+    function lockTick(){
+      const d=new Date();
+      lsTime.textContent=fmt(d.getHours())+":"+fmt(d.getMinutes());
+      lsDate.textContent=d.toLocaleDateString('id-ID',{weekday:'long', day:'numeric', month:'short'});
+    }
+    setInterval(lockTick,1000); lockTick();
+    let unlocking=false;
+    function unlock(){
+      if(unlocking) return; unlocking=true;
+      fpArea.classList.add('unlocking'); lockHint.textContent='Memverifikasi…'; lockHint.classList.add('unlock-progress');
+      setTimeout(()=>{
+        fpArea.classList.add('success'); lockHint.textContent='Terbuka';
+        setTimeout(()=>{
+          lockScreen.classList.add('hide'); relockBtn.style.display='block';
+        },500);
+      }, 1100 + Math.random()*600);
+    }
+    fpArea.addEventListener('click', unlock);
+    function relock(){
+      unlocking=false; fpArea.classList.remove('success','unlocking'); lockHint.textContent='Sentuh fingerprint'; lockHint.classList.remove('unlock-progress');
+      lockScreen.classList.remove('hide');
+    }
+    relockBtn.addEventListener('click', relock);
+
+    // === Quotes ===
+    const quotes=[
+      '“Stay hungry, stay foolish.”',
+      '“Berkarya tiap hari, kecil tapi konsisten.”',
+      '“Simple is not easy.”',
+      '“Progress > perfection.”',
+      '“Design is how it works.”'
+    ];
+    document.getElementById('quote').textContent=quotes[Math.floor(Math.random()*quotes.length)];
+
+    // === Navigation ===
+    const openers = document.querySelectorAll('.app[data-open]');
+    const sheets = {
+      calc: document.getElementById('sheet-calc'),
+      notes: document.getElementById('sheet-notes'),
+      timer: document.getElementById('sheet-timer'),
+  settings: document.getElementById('sheet-settings'),
+  gallery: document.getElementById('sheet-gallery'),
+  music: document.getElementById('sheet-music'),
+  weather: document.getElementById('sheet-weather'),
+  calendar: document.getElementById('sheet-calendar')
+    };
+    openers.forEach(el=> el.addEventListener('click', ()=>{
+      const k = el.getAttribute('data-open');
+      Object.values(sheets).forEach(s=>s.classList.remove('active'));
+      sheets[k].classList.add('active');
+    }));
+    document.querySelectorAll('[data-close]').forEach(b=> b.addEventListener('click',()=>{
+      Object.values(sheets).forEach(s=>s.classList.remove('active'));
+    }));
+
+    // Tap outside to close
+    Object.values(sheets).forEach(sh=>{
+      sh.addEventListener('mousedown', e=>{ if(e.target===sh) Object.values(sheets).forEach(s=>s.classList.remove('active')); });
+      sh.addEventListener('touchstart', e=>{ if(e.target===sh) Object.values(sheets).forEach(s=>s.classList.remove('active')); }, {passive:true});
+    });
+
+    // Swipe down gesture to close
+    const activeSheetCard = ()=>{
+      const a = Object.values(sheets).find(s=>s.classList.contains('active'));
+      return a? a.querySelector('.card'):null;
+    };
+    let dragStartY=null, currentCard=null, startBottom=0, dragging=false;
+    const dragThreshold=80; // px to trigger close
+    function onStart(y){
+      currentCard = activeSheetCard();
+      if(!currentCard) return;
+      dragging=true; dragStartY=y; startBottom=0; currentCard.style.transition='none';
+    }
+    function onMove(y){
+      if(!dragging||!currentCard) return; const dy=y-dragStartY; if(dy<0) return; // only downward
+      currentCard.style.transform=`translateY(${dy}px)`;
+      currentCard.style.opacity = 1 - Math.min(dy/400, .6);
+    }
+    function closeAll(){ Object.values(sheets).forEach(s=>s.classList.remove('active')); }
+    function onEnd(y){
+      if(!dragging||!currentCard) return; const dy=y-dragStartY; dragging=false;
+      currentCard.style.transition=''; currentCard.style.opacity='';
+      if(dy>dragThreshold){
+        currentCard.style.transform=`translateY(100%)`;
+        setTimeout(()=>{ closeAll(); currentCard.style.transform=''; },200);
+      }else{
+        currentCard.style.transform='';
+      }
+    }
+    // Mouse events
+    document.addEventListener('mousedown', e=>{
+      if(e.button!==0) return; const card=activeSheetCard(); if(!card) return; if(!card.contains(e.target)) return; onStart(e.clientY); });
+    document.addEventListener('mousemove', e=> onMove(e.clientY));
+    document.addEventListener('mouseup', e=> onEnd(e.clientY));
+    // Touch events
+    document.addEventListener('touchstart', e=>{
+      const card=activeSheetCard(); if(!card) return; const t=e.touches[0]; if(!card.contains(t.target)) return; onStart(t.clientY); }, {passive:true});
+    document.addEventListener('touchmove', e=>{ const t=e.touches[0]; onMove(t.clientY); }, {passive:true});
+    document.addEventListener('touchend', e=>{ const t=e.changedTouches[0]; onEnd(t.clientY); });
+
+    // === Calculator ===
+    const screen=document.getElementById('calc-screen');
+    const pad=document.getElementById('pad');
+    let expr='0';
+    function render(){screen.textContent=expr}
+    pad.addEventListener('click', (e)=>{
+      const k=e.target.getAttribute('data-k'); if(!k) return;
+      if(k==='C'){expr='0'}
+      else if(k==='DEL'){expr=expr.length>1?expr.slice(0,-1):'0'}
+      else if(k==='='){
+        try{
+          const sanitized=expr.replace(/,/g,'');
+          const val=Function('return ('+sanitized+')')();
+          expr=String(val);
+        }catch{expr='Error'}
+      }else{
+        expr = (expr==='0' && /[0-9.]/.test(k)) ? k : expr + k;
+      }
+      render();
+    });
+    render();
+
+    // === Notes ===
+    const notes = document.getElementById('notes');
+    const notesStatus = document.getElementById('notes-status');
+    const notesKey = 'miniOS.notes.v1';
+    notes.value = localStorage.getItem(notesKey) || '';
+    let saveTimer;
+    notes.addEventListener('input', ()=>{
+      clearTimeout(saveTimer);
+      notesStatus.textContent='Menyimpan…';
+      saveTimer=setTimeout(()=>{
+        localStorage.setItem(notesKey, notes.value);
+        notesStatus.textContent='Tersimpan.';
+      }, 400);
+    });
+    document.getElementById('notes-clear').onclick=()=>{
+      if(confirm('Hapus semua catatan?')){notes.value=''; localStorage.removeItem(notesKey); notesStatus.textContent='Kosong.'}
+    }
+    document.getElementById('notes-export').onclick=()=>{
+      const blob=new Blob([notes.value],{type:'text/plain'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='catatan.txt'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }
+
+    // === Timer ===
+    const dEl=document.getElementById('t-display');
+    const minEl=document.getElementById('t-min');
+    const secEl=document.getElementById('t-sec');
+    let remain=30, itv=null;
+    function show(){
+      dEl.textContent = fmt(Math.floor(remain/60))+":"+fmt(remain%60);
+    }
+    function bell(){
+      try{
+        const ctx=new (window.AudioContext||window.webkitAudioContext)();
+        const o=ctx.createOscillator(); const g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination); o.type='sine'; o.frequency.value=880; g.gain.value=.001; o.start();
+        let t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(.2,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+0.5);
+        o.stop(t+.6);
+      }catch{}
+    }
+    document.getElementById('t-start').onclick=()=>{
+      if(itv) return;
+      remain = Number(minEl.value||0)*60 + Number(secEl.value||0);
+      if(remain<=0) remain=1; show();
+      itv=setInterval(()=>{
+        remain--; show(); if(remain<=0){clearInterval(itv); itv=null; bell();}
+      },1000);
+    }
+    document.getElementById('t-stop').onclick=()=>{clearInterval(itv); itv=null}
+    document.getElementById('t-reset').onclick=()=>{clearInterval(itv); itv=null; remain=30; minEl.value=0; secEl.value=30; show()}
+    show();
+
+    // === Settings ===
+    const root=document.documentElement;
+    function applyTheme(name){
+      if(name==='mint'){
+        root.style.setProperty('--accent', '#8ad3c3');
+        root.style.setProperty('--accent-2', '#f7bfd1');
+      }else if(name==='peach'){
+        root.style.setProperty('--accent', '#ffb199');
+        root.style.setProperty('--accent-2', '#ffe29f');
+      }else if(name==='lilac'){
+        root.style.setProperty('--accent', '#c2a5ff');
+        root.style.setProperty('--accent-2', '#9ad0f5');
+      }
+      localStorage.setItem('miniOS.theme', name);
+    }
+    document.querySelectorAll('[data-theme]').forEach(el=> el.onclick=()=> applyTheme(el.getAttribute('data-theme')));
+    applyTheme(localStorage.getItem('miniOS.theme') || 'mint');
+
+    const scale = document.getElementById('scale');
+    const phone = document.getElementById('phone');
+    scale.value = Number(localStorage.getItem('miniOS.scale')||'1');
+    root.style.setProperty('--scale', scale.value);
+    scale.oninput = ()=>{ root.style.setProperty('--scale', scale.value); localStorage.setItem('miniOS.scale', scale.value)}
+
+  // (Fitur kunci potret dihapus)
+
+  // Hapus dukungan gradient manual; pakai gambar saja
+  localStorage.removeItem('miniOS.wall');
+
+    // === Image Wallpapers (1.jpg,2.jpg,...) ===
+    const wallThumbsContainer = document.getElementById('wallThumbs');
+  const IMG_WALL_MAX = 20; // jumlah maksimum yang akan dicoba
+    function setImageWall(i, save=true){
+      root.style.setProperty('--wallpaper', `url(${i}.jpg) center / cover no-repeat`);
+      document.querySelectorAll('.wall-thumb').forEach(t=> t.classList.toggle('active', t.dataset.wallimg==i));
+      if(save){
+        localStorage.setItem('miniOS.wallimg', i);
+        localStorage.removeItem('miniOS.wall'); // hilangkan pilihan gradient agar tidak override
+      }
+    }
+    function buildImageWalls(){
+      if(!wallThumbsContainer) return;
+      for(let i=1;i<=IMG_WALL_MAX;i++){
+        const div=document.createElement('div');
+        div.className='wall-thumb';
+        div.dataset.wallimg=i;
+        div.style.backgroundImage=`url(${i}.jpg)`;
+        div.title=`Wallpaper ${i}`;
+        div.onclick=()=> setImageWall(i);
+        // Cek apakah file ada dengan onerror
+        const probe=new Image();
+        probe.onload=()=>{ wallThumbsContainer.appendChild(div); maybeMarkActive(); };
+        probe.onerror=()=>{}; // abaikan jika tidak ada
+        probe.src=`${i}.jpg`;
+      }
+    }
+    function maybeMarkActive(){
+      const savedImg = localStorage.getItem('miniOS.wallimg');
+      if(savedImg){
+        setImageWall(savedImg, false);
+      }
+    }
+  buildImageWalls();
+  const wallRandomBtn = document.getElementById('wall-random');
+  if(wallRandomBtn) wallRandomBtn.onclick=()=>{
+      const thumbs=[...document.querySelectorAll('.wall-thumb')];
+      if(!thumbs.length) return;
+      const pick = thumbs[Math.floor(Math.random()*thumbs.length)].dataset.wallimg;
+      setImageWall(pick);
+  };
+
+    // Small haptic (visual) feedback
+    document.querySelectorAll('.key,.btn,.app .icon').forEach(el=>{
+      el.addEventListener('click',()=>{
+        el.animate([{transform:'translateY(0)'},{transform:'translateY(1px)'}],{duration:90});
+      })
+    })
+
+    // === Animated Widgets ===
+    const widgetEls=[...document.querySelectorAll('.widgets .widget')];
+    widgetEls.forEach((w,i)=>{
+      w.style.opacity=0; w.style.transform='translateY(12px) scale(.97)';
+      setTimeout(()=>{
+        w.animate([
+          {opacity:0, transform:'translateY(14px) scale(.95)'},
+          {opacity:1, transform:'translateY(0) scale(1)'}
+        ],{duration:520, easing:'cubic-bezier(.22,.9,.3,1)', fill:'forwards'});
+      }, 120 + i*90);
+    });
+
+    // === Battery Widget ===
+    (function(){
+      const fill=document.getElementById('bat-fill');
+      const text=document.getElementById('bat-text');
+      function upd(lvl, ch){
+        if(!fill) return; const pct=Math.round(lvl*100);
+        fill.style.width=pct+'%'; text.textContent=pct+'%'+(ch? ' ⚡':'');
+        fill.classList.toggle('low', pct<21);
+      }
+      if(navigator.getBattery){
+        navigator.getBattery().then(b=>{
+          upd(b.level, b.charging);
+          ['levelchange','chargingchange'].forEach(ev=> b.addEventListener(ev,()=>upd(b.level,b.charging)));
+        });
+      }else{
+        // fallback simulation
+        let fake=.76; upd(fake,false); setInterval(()=>{fake=Math.max(0,fake-.01); upd(fake,false)},15000);
+      }
+    })();
+
+    // === Weather (simple mock) ===
+    (function(){
+      const cond=[
+        {t:28,d:'Cerah',icon:'☀️'},
+        {t:26,d:'Cerah Berawan',icon:'🌤️'},
+        {t:24,d:'Berawan',icon:'☁️'},
+        {t:22,d:'Hujan Ringan',icon:'🌦️'},
+        {t:29,d:'Panas',icon:'🔥'}
+      ];
+      function pick(){return cond[Math.floor(Math.random()*cond.length)]}
+      const miniMain=document.getElementById('weather-main');
+      const miniDesc=document.getElementById('weather-desc');
+      const full=document.getElementById('weather-full');
+      function render(){
+        const c=pick();
+        if(miniMain){ miniMain.textContent=c.icon+" "+c.t+"°C"; }
+        if(miniDesc){ miniDesc.textContent=c.d; }
+        if(full){
+          let html=`<h4 style="margin-top:0">Status Saat Ini</h4><div style="font-size:46px">${c.icon} ${c.t}°C</div><p>${c.d}</p>`;
+          html+='<h4>Perkiraan Jam Berikut</h4><div style="display:flex;gap:10px;flex-wrap:wrap">';
+          for(let i=1;i<=6;i++){ const f=pick(); html+=`<div style="flex:1 0 70px; text-align:center; background:rgba(255,255,255,.4); padding:8px; border-radius:12px; backdrop-filter:blur(6px)">${f.icon}<br><small>${f.t}°C</small></div>`}
+          html+='</div>';
+          full.innerHTML=html;
+        }
+      }
+      render(); setInterval(render, 30000);
+    })();
+
+    // === Steps Simulation ===
+    (function(){
+      const el=document.getElementById('steps-count');
+      if(!el) return; let steps=0; const goal=5000;
+      setInterval(()=>{ steps=Math.min(goal, steps+Math.floor(Math.random()*40)); el.textContent=steps.toLocaleString('id-ID'); if(steps>=goal){ el.nextElementSibling.textContent='Target tercapai!'; } }, 2500);
+    })();
+
+    // === Gallery Loader ===
+    (function(){
+      const grid=document.getElementById('gallery-grid'); if(!grid) return;
+      for(let i=1;i<=20;i++){
+        const img=new Image(); img.loading='lazy'; img.src=i+'.jpg'; img.alt='Foto '+i; img.onerror=()=>{};
+        img.onload=()=>{
+          const wrap=document.createElement('div'); wrap.style.position='relative'; wrap.style.cursor='zoom-in'; wrap.style.borderRadius='14px'; wrap.style.overflow='hidden'; wrap.style.boxShadow='0 3px 8px rgba(0,0,0,.15)';
+          wrap.appendChild(img); img.style.width='100%'; img.style.display='block';
+          wrap.onclick=()=>{
+            const v=document.createElement('div'); v.style.position='fixed'; v.style.inset='0'; v.style.background='rgba(0,0,0,.65)'; v.style.display='flex'; v.style.alignItems='center'; v.style.justifyContent='center'; v.style.zIndex='9999'; v.innerHTML='<div style="max-width:90%; max-height:90%;"><img src="'+img.src+'" style="max-width:100%; max-height:100%; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,.4)"/></div>';
+            v.onclick=()=>v.remove(); document.body.appendChild(v);
+          }
+          grid.appendChild(wrap);
+        };
+      }
+    })();
+
+    // === Music Loader ===
+    (function(){
+      const list=document.getElementById('music-list'); const player=document.getElementById('player'); if(!list||!player) return;
+      const tracks=[]; for(let i=1;i<=10;i++){ tracks.push('track'+i+'.mp3'); }
+      tracks.forEach(src=>{
+        const a=document.createElement('button'); a.textContent=src; a.className='btn'; a.style.margin='4px';
+        a.onclick=()=>{ player.src=src; player.play().catch(()=>{}); [...list.querySelectorAll('button')].forEach(b=>b.classList.remove('primary')); a.classList.add('primary'); };
+        // pre-check existence
+        fetch(src,{method:'HEAD'}).then(r=>{ if(r.ok) list.appendChild(a); }).catch(()=>{});
+      });
+    })();
+
+    // === Calendar ===
+    (function(){
+      const el=document.getElementById('calendar'); if(!el) return;
+      const d=new Date(); const month=d.getMonth(); const year=d.getFullYear();
+      const first=new Date(year, month,1); const last=new Date(year, month+1,0);
+      const days=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+      let html=`<h4 style="margin:0 0 8px 0;">${d.toLocaleString('id-ID',{month:'long'})} ${year}</h4>`;
+      html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px;text-align:center">';
+      days.forEach(h=> html+=`<div style="font-weight:600;opacity:.7">${h}</div>`);
+      for(let i=0;i<first.getDay();i++) html+='<div></div>';
+      for(let day=1; day<=last.getDate(); day++){
+        const isToday= day===d.getDate();
+        html+=`<div style="padding:6px 4px;border-radius:8px; ${isToday?'background:var(--accent); color:#000; font-weight:600;':''}">${day}</div>`;
+      }
+      html+='</div>';
+      el.innerHTML=html;
+    })();
+  </script>
+</body>
+</html>
