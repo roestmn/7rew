@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Neon Anime Stadium Game</title>
+  <style>
+    :root {
+      --accent: #b76cff;
+      --accent-2: #7afff2;
+      --bg: radial-gradient(ellipse at center, #050014 0%, #01010a 100%);
+      --line: rgba(255, 255, 255, 0.08);
+    }
+
+    * { margin:0; padding:0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      overflow: hidden;
+      font-family: sans-serif;
+      color: #e9eef8;
+      user-select: none;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: transparent;
+    }
+    #scoreboard {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px);
+      border-radius: 8px;
+      box-shadow: 0 0 12px var(--accent);
+      font-size: 18px;
+      font-weight: bold;
+      text-shadow: 0 0 4px var(--accent-2);
+    }
+    #goalArea {
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 180px;
+      height: 120px;
+      border: 3px solid var(--accent-2);
+      box-shadow: 0 0 15px var(--accent);
+      border-radius: 8px;
+    }
+    #restartBtn {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      font-size: 16px;
+      background: var(--accent);
+      color: #01010a;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-2);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="scoreboard">Score: 0</div>
+  <div id="goalArea"></div>
+  <button id="restartBtn">Restart</button>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+
+    const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim();
+    const accent2 = getComputedStyle(document.body).getPropertyValue('--accent-2').trim();
+
+    // bola
+    const ball = {
+      x: W/2,
+      y: H * 0.7,
+      r: 36,
+      vx: 0,
+      vy: 0,
+      speed: 600,
+      isHeld: false
+    };
+
+    let score = 0;
+    let gameOver = false;
+
+    // goal area box coordinates
+    const goalElem = document.getElementById('goalArea');
+    function goalBox() {
+      const rect = goalElem.getBoundingClientRect();
+      return { x: rect.left, y: rect.top, w: rect.width, h: rect.height };
+    }
+
+    canvas.addEventListener('mousedown', holdBall);
+    canvas.addEventListener('touchstart', holdBall);
+    canvas.addEventListener('mouseup', releaseBall);
+    canvas.addEventListener('touchend', releaseBall);
+
+    function holdBall(e) {
+      if (gameOver) return;
+      ball.isHeld = true;
+      const pos = getPointerPos(e);
+      ball.x = pos.x;
+      ball.y = pos.y;
+      ball.vx = 0;
+      ball.vy = 0;
+    }
+
+    function releaseBall(e) {
+      if (!ball.isHeld) return;
+      ball.isHeld = false;
+      const pos = getPointerPos(e);
+      // hit direction
+      const dx = (pos.x - ball.x);
+      const dy = (pos.y - ball.y);
+      // normalize
+      const mag = Math.sqrt(dx*dx + dy*dy) || 1;
+      ball.vx = dx / mag * ball.speed;
+      ball.vy = dy / mag * ball.speed;
+    }
+
+    function getPointerPos(e) {
+      let x, y;
+      if (e.touches && e.touches.length > 0) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+      } else {
+        x = e.clientX;
+        y = e.clientY;
+      }
+      return {x, y};
+    }
+
+    function resetBall() {
+      ball.x = W/2;
+      ball.y = H * 0.7;
+      ball.vx = 0;
+      ball.vy = 0;
+      ball.isHeld = false;
+    }
+
+    function drawNeonBall(x, y, r) {
+      // glow
+      ctx.save();
+      const grad = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 3);
+      grad.addColorStop(0, accent2);
+      grad.addColorStop(0.4, accent);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, r * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // ball body
+      ctx.save();
+      const grad2 = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.3, x, y, r);
+      grad2.addColorStop(0, '#ffffffcc');
+      grad2.addColorStop(0.4, accent2);
+      grad2.addColorStop(1, accent);
+      ctx.fillStyle = grad2;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // highlight
+      ctx.save();
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(x - r * 0.4, y - r * 0.4, r * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Particles
+    const particles = [];
+    function spawnParticle(x, y) {
+      particles.push({
+        x, y,
+        vx: (Math.random()-0.5)*200,
+        vy: (Math.random()-0.5)*200,
+        life: 1
+      });
+    }
+    function updateParticles(dt) {
+      for (let i = particles.length-1; i >=0; i--) {
+        const p = particles[i];
+        p.life -= dt;
+        if (p.life <=0) {
+          particles.splice(i,1);
+          continue;
+        }
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+      }
+    }
+    function drawParticles() {
+      for (const p of particles) {
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = accent2;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function update(dt) {
+      if (ball.isHeld || gameOver) return;
+
+      // physics
+      ball.vy += 1000 * dt; // gravity
+      ball.x += ball.vx * dt;
+      ball.y += ball.vy * dt;
+
+      // ground
+      if (ball.y + ball.r > H) {
+        ball.y = H - ball.r;
+        ball.vy *= -0.6;
+        spawnParticle(ball.x, ball.y);
+      }
+      // walls
+      if (ball.x - ball.r < 0) {
+        ball.x = ball.r;
+        ball.vx *= -0.6;
+        spawnParticle(ball.x, ball.y);
+      }
+      if (ball.x + ball.r > W) {
+        ball.x = W - ball.r;
+        ball.vx *= -0.6;
+        spawnParticle(ball.x, ball.y);
+      }
+
+      // goal check
+      const gb = goalBox();
+      if (ball.x + ball.r > gb.x && 
+          ball.y > gb.y && 
+          ball.y < gb.y + gb.h) {
+        score += 1;
+        document.getElementById('scoreboard').textContent = 'Score: ' + score;
+        spawnParticle(ball.x, ball.y);
+        resetBall();
+      }
+    }
+
+    function drawStadiumLines() {
+      ctx.save();
+      ctx.strokeStyle = varToRGBA(accent2, 0.05);
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 10; i++) {
+        const y = H * 0.5 + i * 40;
+        ctx.beginPath();
+        ctx.moveTo(60, y);
+        ctx.lineTo(W - 60, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function varToRGBA(varColor, alpha) {
+      // varColor in hex or with #, return rgba
+      // simple parser
+      let c = varColor.replace('#','');
+      if (c.length === 6) {
+        const r = parseInt(c.substring(0,2),16);
+        const g = parseInt(c.substring(2,4),16);
+        const b = parseInt(c.substring(4,6),16);
+        return `rgba(${r},${g},${b},${alpha})`;
+      }
+      return varColor;
+    }
+
+    function render() {
+      ctx.clearRect(0,0,W,H);
+
+      // background gradient/fog maybe
+      const fogGrad = ctx.createLinearGradient(0,0,0,H);
+      fogGrad.addColorStop(0, 'rgba(10,8,20,0.1)');
+      fogGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
+      ctx.fillStyle = fogGrad;
+      ctx.fillRect(0,0,W,H);
+
+      drawStadiumLines();
+      drawNeonBall(ball.x, ball.y, ball.r);
+      drawParticles();
+    }
+
+    let last = 0;
+    function loop(ts) {
+      const dt = (ts - last) / 1000;
+      last = ts;
+      update(dt);
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    loop(0);
+
+    // Restart
+    const restartBtn = document.getElementById('restartBtn');
+    restartBtn.addEventListener('click', () => {
+      score = 0;
+      document.getElementById('scoreboard').textContent = 'Score: 0';
+      gameOver = false;
+      resetBall();
+      restartBtn.style.display = 'none';
+    });
+
+    // If ball falls off bottom too far => game over
+    function checkGameOver() {
+      if (ball.y - ball.r > H + 100) {
+        gameOver = true;
+        restartBtn.style.display = 'block';
+      }
+    }
+
+    setInterval(checkGameOver, 100);
+
+    window.addEventListener('resize', () => {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      resetBall();
+    });
+  </script>
+</body>
+</html>
