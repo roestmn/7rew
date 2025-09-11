@@ -23,7 +23,7 @@ Membangun karya yang bermanfaat, mudah dipahami, dan bisa jadi inspirasi untuk t
 
 ---
 
-## ✨ Versi Santai (bio/WA/IG)
+## ✨ BIO
 **7rew** = Seven Reward.  
 Beda bakat, satu tim.  
 Bikin karya kecil-kecil tapi niat. 🚀
