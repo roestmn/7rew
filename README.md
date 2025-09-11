@@ -1,6 +1,6 @@
-# 7rew — *Seven Crew*
+# 7rew — *Seven Reward*
 
-**7rew** adalah *Seven Crew*: tim yang percaya setiap anggota punya keunikan,  
+**7rew** adalah *Seven Reward*: tim yang percaya setiap anggota punya keunikan,  
 dan saat disatukan jadi kru yang solid. Kami belajar, berkarya, dan berkembang bareng—  
 menciptakan karya sederhana tapi bermakna.
 
@@ -19,11 +19,11 @@ Membangun karya yang bermanfaat, mudah dipahami, dan bisa jadi inspirasi untuk t
 ---
 
 ## 📝 Motto
-> **“Different talents, one crew, endless creativity.”**
+> **“Different talents, one reward, endless creativity.”**
 
 ---
 
 ## ✨ Versi Santai (bio/WA/IG)
-**7rew** = Seven Crew.  
+**7rew** = Seven Reward.  
 Beda bakat, satu tim.  
 Bikin karya kecil-kecil tapi niat. 🚀
