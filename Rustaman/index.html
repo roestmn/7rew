@@ -118,6 +118,12 @@
     .settings .row{justify-content:space-between}
     .chip{padding:8px 12px; border-radius:999px; border:1px solid #e7ebf4; cursor:pointer}
 
+  /* Credit & watermark */
+  .settings .credit{margin-top:14px; padding-top:12px; border-top:1px solid #eef0f4; font-size:12px; color:var(--muted); text-align:center}
+  .settings .credit strong{color:#2b2f36}
+  .home .wm{position:absolute; right:16px; bottom:14px; padding:6px 10px; font-size:11px; color:#111; background:rgba(255,255,255,.55); border:1px solid rgba(0,0,0,.06); border-radius:999px; box-shadow:0 4px 12px rgba(0,0,0,.12); pointer-events:none; backdrop-filter:blur(8px) saturate(1.4); -webkit-backdrop-filter:blur(8px) saturate(1.4)}
+  .lock-screen .wm{position:absolute; right:16px; bottom:14px; padding:6px 10px; font-size:11px; color:#111; background:rgba(255,255,255,.55); border:1px solid rgba(0,0,0,.06); border-radius:999px; box-shadow:0 4px 12px rgba(0,0,0,.18); pointer-events:none; backdrop-filter:blur(10px) saturate(1.4); -webkit-backdrop-filter:blur(10px) saturate(1.4)}
+
   /* Wallpaper image thumbs */
   .wall-thumbs{display:flex; flex-wrap:wrap; gap:8px; max-width:100%}
   .wall-thumb{width:54px; height:54px; border-radius:14px; background:#e3e6ec; background-size:cover; background-position:center; cursor:pointer; position:relative; border:2px solid transparent; box-shadow:0 2px 6px rgba(0,0,0,.08)}
@@ -395,7 +401,7 @@
         <div class="content settings">
           <div class="row">
             <div>
-              <div><strong>Tema</strong></div>
+        <div class="wm">by Rustaman Delvianova</div>
               <div class="row" style="margin-top:8px">
                 <span class="chip" data-theme="mint">Mint</span>
                 <span class="chip" data-theme="peach">Peach</span>
@@ -420,6 +426,7 @@
               </div>
             </div>
           </div>
+          <div class="credit">Dibuat oleh <strong>Rustaman Delvianova</strong></div>
         </div>
       </div>
     </div>
@@ -490,6 +497,7 @@
         </div>
       </div>
     </div>
+  <div class="wm">by Rustaman Delvianova</div>
   </div>
   <button class="relock-btn" id="relockBtn" style="display:none">Kunci Lagi</button>
 
@@ -866,15 +874,53 @@
     })();
 
     // === Music Loader ===
-    (function(){
-      const list=document.getElementById('music-list'); const player=document.getElementById('player'); if(!list||!player) return;
-      const tracks=[]; for(let i=1;i<=10;i++){ tracks.push('track'+i+'.mp3'); }
-      tracks.forEach(src=>{
-        const a=document.createElement('button'); a.textContent=src; a.className='btn'; a.style.margin='4px';
-        a.onclick=()=>{ player.src=src; player.play().catch(()=>{}); [...list.querySelectorAll('button')].forEach(b=>b.classList.remove('primary')); a.classList.add('primary'); };
-        // pre-check existence
-        fetch(src,{method:'HEAD'}).then(r=>{ if(r.ok) list.appendChild(a); }).catch(()=>{});
-      });
+    (async function(){
+      const list=document.getElementById('music-list');
+      const player=document.getElementById('player');
+      if(!list||!player) return;
+
+      const exts=['.mp3','.m4a','.ogg'];
+      let found=0;
+
+      function addTrack(src){
+        const a=document.createElement('button');
+        a.textContent=src; a.className='btn'; a.style.margin='4px';
+        a.onclick=()=>{
+          player.src=src; player.play().catch(()=>{});
+          [...list.querySelectorAll('button')].forEach(b=>b.classList.remove('primary'));
+          a.classList.add('primary');
+        };
+        list.appendChild(a);
+        found++;
+      }
+
+      function canLoad(src){
+        return new Promise(resolve=>{
+          const a=document.createElement('audio');
+          a.preload='metadata';
+          let done=false;
+          const finish=(ok)=>{ if(done) return; done=true; resolve(ok); a.removeAttribute('src'); try{a.load()}catch{} };
+          a.addEventListener('loadedmetadata', ()=>finish(true), {once:true});
+          a.addEventListener('error', ()=>finish(false), {once:true});
+          a.src=src; try{a.load()}catch{};
+          setTimeout(()=>finish(false), 2500); // timeout agar tidak menggantung
+        });
+      }
+
+      for(let i=1;i<=10;i++){
+        let hit=null;
+        for(const e of exts){
+          const src=`track${i}${e}`;
+          // sequential await to keep it simple and compatible
+          // eslint-disable-next-line no-await-in-loop
+          if(await canLoad(src)){ hit=src; break; }
+        }
+        if(hit) addTrack(hit);
+      }
+
+      if(!found){
+        list.innerHTML='<small style="opacity:.8">Tidak menemukan lagu. Letakkan file track1.mp3 (atau .m4a/.ogg) di folder yang sama dengan halaman ini.</small>';
+      }
     })();
 
     // === Calendar ===
