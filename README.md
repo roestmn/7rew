@@ -1,4 +1,5 @@
-<img src="https://s3-alpha.figma.com/hub/file/5678700701/91e47b29-8ba0-49cd-a943-01a910e8199d-cover.png" alt="Screenshot 1" />
+<img src="shots/ban.png" alt="Screenshot 1" />
+
 # 7rew — Seven Reward
 
 >Koleksi halaman HTML/JS interaktif dari anggota Kelompok 7. Satu repo, banyak gaya: retro arcade, playground fisika, mini OS, sampai majalah digital.
