@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rehan — Pixel Lab Arcade</title>
+<style>
+/* =========================
+   Retro Pixel / Arcade CSS
+   All inline (no fonts/libs)
+   ========================= */
+
+/* CSS variables for theming / high contrast */
+:root{
+  --bg:#0b0b10;
+  --panel:#111116;
+  --accent:#39ff14;
+  --muted:#9aa0aa;
+  --crt:#000;
+  --text:#cfe9ff;
+  --scanline-opacity:0.06;
+  --focus: #ffde59;
+  --grid-gap:12px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+}
+
+/* High-contrast toggled class will flip some variables */
+:root.high-contrast{
+  --bg:#000;
+  --panel:#0e0e0e;
+  --accent:#ffff00;
+  --muted:#ffffff;
+  --scanline-opacity:0.12;
+  --focus:#00ffea;
+}
+
+/* Reset + layout */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--mono);
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(3,3,10,0.6), transparent),
+              linear-gradient(180deg, #061116 0%, var(--bg) 60%);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:18px;
+}
+
+/* Page container */
+.app{
+  display:grid;
+  grid-template-columns: 260px 1fr;
+  gap:18px;
+  min-height:calc(100vh - 36px);
+  align-items:start;
+}
+
+/* Retro header */
+.header{
+  grid-column:1/-1;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+  border:1px solid rgba(255,255,255,0.03);
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  position:relative;
+  overflow:visible;
+}
+
+/* Pixel title with scanline animation */
+.title{
+  font-size:22px;
+  letter-spacing:2px;
+  line-height:1;
+  color:var(--accent);
+  text-shadow:0 0 6px rgba(57,255,20,0.08), 0 0 12px rgba(57,255,20,0.02);
+  position:relative;
+  padding:6px 12px;
+  border-radius:6px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  font-weight:700;
+  display:inline-block;
+  font-family:var(--mono);
+  user-select:none;
+}
+
+/* Scanline animated overlay in title */
+.title::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;bottom:0;
+  background:repeating-linear-gradient(180deg,
+    rgba(0,0,0,var(--scanline-opacity)) 0 2px,
+    rgba(255,255,255,0.02) 2px 3px);
+  mix-blend-mode:overlay;
+  animation:scan 5s linear infinite;
+  pointer-events:none;
+  border-radius:6px;
+}
+@keyframes scan{
+  0%{transform:translateY(-10%)}
+  100%{transform:translateY(110%)}
+}
+
+/* Sidebar */
+.sidebar{
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,0.03);
+  padding:12px;
+  border-radius:8px;
+  height:calc(100vh - 120px);
+  overflow:auto;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+}
+.logo{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+}
+.logo .mark{
+  width:44px;height:44px;border-radius:4px;
+  background:linear-gradient(135deg,#081218,#18221a);
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(255,255,255,0.03);
+  font-weight:700;color:var(--accent);font-size:14px;
+}
+
+/* Sidebar menu */
+.menu{display:flex;flex-direction:column;gap:8px}
+.menu button{
+  background:transparent;border:1px solid rgba(255,255,255,0.03);
+  padding:10px 12px;border-radius:6px;color:var(--text);
+  text-align:left;cursor:pointer;font-family:var(--mono);font-size:14px;
+}
+.menu button:focus{outline:3px solid var(--focus);outline-offset:2px}
+.menu button.active{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:inset 0 -3px 8px rgba(0,0,0,0.6)}
+
+/* Top-left secret click area indicator (invisible) */
+.corner-hit{
+  position:fixed;left:10px;top:10px;width:36px;height:36px;z-index:9999;
+  background:transparent;border-radius:6px;cursor:pointer;
+}
+
+/* Main area uses grid 12 columns */
+.main{
+  display:grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap:var(--grid-gap);
+}
+
+/* Panels */
+.panel{
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+  border:1px solid rgba(255,255,255,0.03);
+  padding:12px;border-radius:8px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+}
+
+/* About */
+.about{grid-column: 1 / span 4;}
+.bio{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.4}
+.stats{
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.stat-card{
+  background:rgba(0,0,0,0.14);padding:8px;border-radius:6px;
+  min-width:85px;text-align:center;
+}
+.stat-card h4{margin:0;font-size:12px}
+.stat-card p{margin:6px 0 0;font-weight:700;font-size:16px}
+
+/* Lab */
+.lab{grid-column: 5 / span 4;}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{
+  border-radius:6px;padding:6px 8px;font-size:12px;background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+/* Gallery */
+.gallery{grid-column:9 / span 4;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.thumb{
+  height:100px;background:linear-gradient(90deg,#141414,#0b0b0b);
+  display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;
+  border:1px solid rgba(255,255,255,0.03);
+  position:relative;overflow:hidden;
+}
+.thumb .placeholder{
+  width:64px;height:64px;image-rendering:pixelated;background:
+    repeating-linear-gradient(45deg,#222 0 6px,#0a0a0a 6px 12px);
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,0.2);
+}
+
+/* Arcade Field (canvas) */
+.field{
+  grid-column:1 / -1;
+  margin-top:6px; padding:0; position:relative;
+  height:520px;border-radius:8px;overflow:hidden;
+}
+.field .crt{
+  position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(180deg,
+    rgba(0,0,0,var(--scanline-opacity)) 0 2px,
+    rgba(255,255,255,0.01) 2px 3px);
+  mix-blend-mode:overlay;
+  z-index:3;
+}
+
+/* Controls HUD overlay */
+.hud{
+  position:absolute;right:18px;top:18px;z-index:4;display:flex;flex-direction:column;gap:8px;
+}
+.hud .panel{padding:8px;font-size:13px;min-width:140px}
+
+/* Combo meter */
+.combo{
+  display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;
+}
+
+/* On-screen d-pad */
+.dpad{
+  position:absolute;left:18px;bottom:18px;z-index:5;display:grid;grid-template-columns:repeat(3,44px);gap:6px;
+  user-select:none;
+}
+.dpad button{
+  height:44px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  font-weight:700;cursor:pointer;
+}
+.dpad button:focus{outline:3px solid var(--focus);outline-offset:2px}
+
+/* Modal */
+.modal{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:999;
+  background:linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.85));
+}
+.modal.show{display:flex}
+.modal .zoom{
+  width:min(80vw,720px);height:min(80vh,720px);background:#050507;border-radius:8px;padding:12px;
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.03);
+}
+.modal .zoom .crt-zoom{
+  position:absolute;inset:0;mix-blend-mode:overlay;background:repeating-linear-gradient(180deg, rgba(0,0,0,0.06) 0 2px, rgba(255,255,255,0.01) 2px 3px);
+}
+
+/* Dev room overlay */
+.devroom{
+  position:fixed;right:10px;top:70px;background:rgba(0,0,0,0.7);padding:8px;border-radius:6px;font-size:12px;
+  display:none;color:var(--muted);z-index:9999;
+}
+.devroom.show{display:block}
+
+/* Focus ring for accessibility */
+[tabindex] {outline: none}
+:focus{outline:3px solid var(--focus);outline-offset:2px}
+
+/* small responsive tweaks */
+@media (max-width:900px){
+  .app{grid-template-columns: 1fr;}
+  .sidebar{height:auto;order:2}
+  .main{order:1}
+  .about{grid-column:1/-1}
+  .lab{grid-column:1/-1}
+  .gallery{grid-column:1/-1;grid-template-columns:repeat(4,1fr)}
+  .field{height:420px}
+}
+</style>
+</head>
+<body>
+<div class="corner-hit" title="secret" aria-hidden="true"></div>
+
+<div class="app" id="app">
+  <header class="header" role="banner">
+    <div class="title" id="headerTitle" aria-hidden="true">REHAN ALFARIDZI</div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="startBtn" class="panel" title="Start (Enter)">▶ Start (Enter)</button>
+      <button id="muteBtn" class="panel" title="Mute" aria-pressed="false">Mute</button>
+      <button id="contrastBtn" class="panel" title="High contrast" aria-pressed="false">Contrast</button>
+      <button id="skinBtn" class="panel" title="Change skin (R)">Skin (R)</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Main menu">
+    <div class="logo">
+      <div class="mark">R</div>
+      <div>
+        <div style="font-size:12px">REHAN PIXEL LAB</div>
+        <div style="font-size:11px;color:var(--muted)">Pixel / Arcade / Experiments</div>
+      </div>
+    </div>
+
+    <nav class="menu" role="menu" aria-label="Sections">
+      <button role="menuitem" tabindex="0" data-target="about" class="active">About</button>
+      <button role="menuitem" tabindex="0" data-target="lab">Lab</button>
+      <button role="menuitem" tabindex="0" data-target="gallery">Gallery</button>
+      <button role="menuitem" tabindex="0" data-target="field">Game / Field</button>
+    </nav>
+
+    <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button id="hcToggle" class="panel" title="Toggle Hardcore Mode">Hardcore</button>
+      <button id="saveBtn" class="panel" title="Save Score">Save</button>
+    </div>
+
+    <div style="margin-top:12px;color:var(--muted);font-size:12px">Controls:
+      <ul style="margin:6px 0 0 18px;padding:0;color:var(--muted);font-size:12px">
+        <li>WASD / Arrows — move</li>
+        <li>Space — kick / action</li>
+        <li>Enter — start</li>
+        <li>R — change arena skin</li>
+      </ul>
+    </div>
+
+  </aside>
+
+  <!-- MAIN (12-column grid) -->
+  <main class="main" role="main" aria-live="polite">
+
+    <!-- About -->
+    <section id="about" class="panel about" aria-labelledby="aboutTitle">
+      <h3 id="aboutTitle">About</h3>
+      <p class="bio">Halo — saya <strong>Rehan Alfaridzi</strong>. Pixel tinkerer, tiny-game dev, and retro-sound lover. This page is a compact Pixel Lab / Arcade built with plain HTML/CSS/JS — CRT vibes included.</p>
+      <div class="stats" aria-hidden="false">
+        <div class="stat-card" id="statLevel"><h4>Level</h4><p id="levelVal">7</p></div>
+        <div class="stat-card" id="statHP"><h4>HP</h4><p id="hpVal">48/60</p></div>
+        <div class="stat-card" id="statEXP"><h4>EXP</h4><p id="expVal">1234</p></div>
+      </div>
+    </section>
+
+    <!-- Lab -->
+    <section id="lab" class="panel lab" aria-labelledby="labTitle">
+      <h3 id="labTitle">Lab</h3>
+      <p style="color:var(--muted);font-size:13px">Eksperimen aktif — badge menunjukkan teknologi yang dipakai.</p>
+      <div class="badges" role="list" aria-label="Badges">
+        <div class="badge" role="listitem">JS</div>
+        <div class="badge" role="listitem">Canvas</div>
+        <div class="badge" role="listitem">Shader (simulasi)</div>
+        <div class="badge" role="listitem">WebAudio</div>
+        <div class="badge" role="listitem">A11y</div>
+      </div>
+      <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+      <div style="font-size:13px;color:var(--muted)">
+        <strong>Notes:</strong> Single rAF loop, requestIdleCallback for housekeeping, basic AI demos, and keyboard-first controls.
+      </div>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery" class="panel gallery" aria-labelledby="galleryTitle">
+      <h3 id="galleryTitle" style="grid-column:1/-1">Gallery</h3>
+      <!-- 8 thumbnails -->
+      <div class="thumb" tabindex="0" data-id="1" aria-label="Thumbnail 1"><div class="placeholder"></div></div>
+      <div class="thumb" tabindex="0" data-id="2" aria-label="Thumbnail 2"><div class="placeholder"></div></div>
+      <div class="thumb" tabindex="0" data-id="3" aria-label="Thumbnail 3"><div class="placeholder"></div></div>
+      <div class="thumb" tabindex="0" data-id="4" aria-label="Thumbnail 4"><div class="placeholder"></div></div>
+      <div class="thumb" tabindex="0" data-id="5" aria-label="Thumbnail 5"><div class="placeholder"></div></div>
+      <div class="thumb" tabindex="0" data-id="6" aria-label="Thumbnail 6"><div class="placeholder"></div></div>
+      <div class="thumb" tabindex="0" data-id="7" aria-label="Thumbnail 7"><div class="placeholder"></div></div>
+      <div class="thumb" tabindex="0" data-id="8" aria-label="Thumbnail 8"><div class="placeholder"></div></div>
+    </section>
+
+    <!-- Arcade Field (full width canvas) -->
+    <section id="field" class="panel field" aria-labelledby="fieldTitle">
+      <h3 id="fieldTitle" style="position:absolute;left:18px;top:8px;z-index:6">Arcade Field</h3>
+      <canvas id="gameCanvas" width="1200" height="520" style="display:block;width:100%;height:100%;"></canvas>
+      <div class="crt" aria-hidden="true"></div>
+
+      <!-- HUD -->
+      <div class="hud" role="region" aria-label="HUD">
+        <div class="panel" id="scorePanel">Score: <span id="score">0</span> • High: <span id="high">0</span></div>
+        <div class="panel combo" id="comboPanel">Combo: <span id="combo">x1</span></div>
+        <div class="panel" id="creditsPanel">Credits: <span id="credits">0</span></div>
+      </div>
+
+      <!-- On-screen d-pad (mobile) -->
+      <div class="dpad" role="toolbar" aria-label="On-screen controls">
+        <div></div>
+        <button id="upBtn" aria-label="Up" tabindex="0">↑</button>
+        <div></div>
+        <button id="leftBtn" aria-label="Left" tabindex="0">←</button>
+        <button id="fireBtn" aria-label="Kick" tabindex="0">•</button>
+        <button id="rightBtn" aria-label="Right" tabindex="0">→</button>
+        <div></div>
+        <button id="downBtn" aria-label="Down" tabindex="0">↓</button>
+        <div></div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal for gallery / zoom -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="zoom" role="document">
+    <div class="crt-zoom"></div>
+    <div id="zoomContent" style="width:80%;height:80%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px">
+      Pixel art zoom placeholder
+    </div>
+  </div>
+</div>
+
+<!-- Dev room -->
+<div class="devroom" id="devroom" aria-live="polite">
+  <div><strong>Dev Room</strong></div>
+  <div>FPS: <span id="dbgFPS">0</span></div>
+  <div>Entities: <span id="dbgEntities">0</span></div>
+  <div>Hitboxes: <span id="dbgHit">0</span></div>
+  <div>Mode: <span id="dbgMode">Normal</span></div>
+</div>
+
+<script>
+/* ===========================
+   JS: Single-file Arcade Logic
+   - canvas rendering
+   - single rAF loop
+   - Penalty Pixel game
+   - Combo meter
+   - Skins (R)
+   - Controls + on-screen dpad (ARIA)
+   - WebAudio SFX + mute
+   - Hidden gems: insert coin, Konami, corner click 5x => Dev Room, Shift+G ghost ball
+   - requestIdleCallback housekeeping
+   =========================== */
+
+(() => {
+  // ELEMENTS
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const headerTitle = document.getElementById('headerTitle');
+  const startBtn = document.getElementById('startBtn');
+  const muteBtn = document.getElementById('muteBtn');
+  const contrastBtn = document.getElementById('contrastBtn');
+  const skinBtn = document.getElementById('skinBtn');
+  const modal = document.getElementById('modal');
+  const zoomContent = document.getElementById('zoomContent');
+  const highContrastToggle = document.getElementById('contrastBtn');
+  const creditsEl = document.getElementById('credits');
+  const scoreEl = document.getElementById('score');
+  const highEl = document.getElementById('high');
+  const comboEl = document.getElementById('combo');
+  const devroom = document.getElementById('devroom');
+  const dbgFPS = document.getElementById('dbgFPS');
+  const dbgEntities = document.getElementById('dbgEntities');
+  const dbgHit = document.getElementById('dbgHit');
+  const dbgMode = document.getElementById('dbgMode');
+  const creditsPanel = document.getElementById('creditsPanel');
+
+  // Canvas size adapt to css size (pixel ratio)
+  function fitCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  fitCanvas();
+  window.addEventListener('resize', fitCanvas);
+
+  // State
+  let state = {
+    running: false,
+    score: 0,
+    high: parseInt(localStorage.getItem('rehan_high')||'0',10) || 0,
+    combo: 1,
+    comboTimer: 0,
+    credits: 0,
+    hardcore: false,
+    skinIndex: 0,
+    skins: ['grass','asphalt','neon'],
+    mute: false,
+    ghostBall: false,
+    devRoom: false,
+    secretInsertCoinCount:0,
+  };
+  highEl.textContent = state.high;
+  creditsEl.textContent = state.credits;
+
+  // Audio context and simple SFX
+  const audio = { ctx:null, master:null, initCalled:false };
+  function initAudio(){
+    if(audio.initCalled) return;
+    try{
+      audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      audio.master = audio.ctx.createGain();
+      audio.master.gain.value = 0.8;
+      audio.master.connect(audio.ctx.destination);
+      audio.initCalled = true;
+    }catch(e){
+      console.warn('Audio not available', e);
+    }
+  }
+  function playBeep(f=440,d=0.06,type='square',vol=0.25){
+    if(state.mute) return;
+    initAudio();
+    if(!audio.ctx) return;
+    const o = audio.ctx.createOscillator();
+    const g = audio.ctx.createGain();
+    o.type = type;
+    o.frequency.value = f;
+    g.gain.value = vol;
+    o.connect(g); g.connect(audio.master);
+    o.start();
+    g.gain.setTargetAtTime(0.0001, audio.ctx.currentTime + d*0.9, 0.01);
+    o.stop(audio.ctx.currentTime + d);
+  }
+  function playKick(){
+    // quick multi-osc to emulate chiptune kick
+    playBeep(120,0.08,'saw',0.4);
+    setTimeout(()=>playBeep(220,0.06,'square',0.2),20);
+  }
+  function playScore(){
+    playBeep(880,0.12,'sine',0.25);
+    setTimeout(()=>playBeep(1320,0.08,'square',0.18),80);
+  }
+
+  // Mute toggle
+  muteBtn.addEventListener('click', ()=>{
+    state.mute = !state.mute;
+    muteBtn.setAttribute('aria-pressed', String(state.mute));
+    muteBtn.textContent = state.mute ? 'Muted' : 'Mute';
+  });
+
+  // High contrast toggle
+  highContrastToggle.addEventListener('click', () => {
+    const root = document.documentElement;
+    state.highContrast = !state.highContrast;
+    root.classList.toggle('high-contrast', state.highContrast);
+    highContrastToggle.setAttribute('aria-pressed', String(state.highContrast));
+  });
+
+  // Skin change (R)
+  function applySkin(i){
+    state.skinIndex = i % state.skins.length;
+    dbgMode.textContent = state.skins[state.skinIndex];
+  }
+  skinBtn.addEventListener('click', ()=> {
+    applySkin(state.skinIndex+1);
+  });
+
+  // Gallery modal
+  document.querySelectorAll('.thumb').forEach(t => {
+    t.addEventListener('click', ()=> openModal(t.dataset.id));
+    t.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') openModal(t.dataset.id); });
+  });
+  function openModal(id){
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden','false');
+    zoomContent.textContent = `Pixel art #${id} — CRT zoom`;
+    playBeep(600,0.08,'square',0.12);
+  }
+  modal.addEventListener('click', (e)=>{
+    if(e.target === modal) {
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden','true');
+    }
+  });
+
+  // Menu navigation
+  document.querySelectorAll('.menu button').forEach(btn => {
+    btn.addEventListener('click', ()=> {
+      document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const target = btn.dataset.target;
+      // scroll into view / focus
+      const el = document.getElementById(target);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+    });
+  });
+
+  // On-screen dpad hooking to keyboard functions
+  const keyState = { ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false, w:false,a:false,s:false,d:false };
+  function bindDpad(id, keyName){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('pointerdown', (e)=> {
+      e.preventDefault();
+      keyState[keyName] = true;
+    });
+    el.addEventListener('pointerup', (e)=> { keyState[keyName] = false; });
+    el.addEventListener('pointerleave', (e)=> { keyState[keyName] = false; });
+    el.addEventListener('click', ()=> {
+      // small click effect
+      playBeep(440,0.04,'square',0.08)
+    });
+  }
+  bindDpad('upBtn','ArrowUp');
+  bindDpad('downBtn','ArrowDown');
+  bindDpad('leftBtn','ArrowLeft');
+  bindDpad('rightBtn','ArrowRight');
+  bindDpad('fireBtn','fire');
+
+  // Keyboard handling
+  const keysPressed = {};
+  window.addEventListener('keydown', (e)=>{
+    if(e.repeat) return;
+    keysPressed[e.key] = true;
+    // WASD mapping
+    if(e.key==='w') keyState.w = true;
+    if(e.key==='a') keyState.a = true;
+    if(e.key==='s') keyState.s = true;
+    if(e.key==='d') keyState.d = true;
+
+    // Start / Enter
+    if(e.key === 'Enter'){ toggleStart(); e.preventDefault(); }
+    // Kick / Space
+    if(e.key === ' ' || e.code === 'Space'){ kickAction(); e.preventDefault(); }
+    // Skin (R)
+    if(e.key.toLowerCase() === 'r'){ applySkin(state.skinIndex+1); playBeep(720,0.05,'square',0.12) }
+    // Hardcore toggle: Shift+H
+    if(e.shiftKey && e.key.toLowerCase() === 'g'){
+      // Shift+G = Ghost ball
+      activateGhostBall();
+    }
+    // Mute with M
+    if(e.key.toLowerCase() === 'm'){ state.mute = !state.mute; muteBtn.setAttribute('aria-pressed', String(state.mute)); }
+  });
+  window.addEventListener('keyup', (e)=>{
+    delete keysPressed[e.key];
+    if(e.key==='w') keyState.w = false;
+    if(e.key==='a') keyState.a = false;
+    if(e.key==='s') keyState.s = false;
+    if(e.key==='d') keyState.d = false;
+    if(e.key==='ArrowUp') keyState.ArrowUp = false;
+    if(e.key==='ArrowDown') keyState.ArrowDown = false;
+    if(e.key==='ArrowLeft') keyState.ArrowLeft = false;
+    if(e.key==='ArrowRight') keyState.ArrowRight = false;
+  });
+
+  // Mouse drag aiming for penalty - basic implement
+  let dragging = false;
+  let dragStart = null;
+  let aimVector = { x:0, y:0 };
+  canvas.addEventListener('pointerdown', (e)=>{
+    dragging = true;
+    dragStart = { x:e.offsetX, y:e.offsetY };
+  });
+  window.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    const rect = canvas.getBoundingClientRect();
+    aimVector.x = (e.clientX - rect.left) - dragStart.x;
+    aimVector.y = (e.clientY - rect.top) - dragStart.y;
+  });
+  window.addEventListener('pointerup', (e)=>{
+    if(!dragging) return;
+    dragging = false;
+    // set kick vector
+    ball.vx = aimVector.x * 0.08;
+    ball.vy = aimVector.y * 0.08;
+    ball.kicked = true;
+    playKick();
+  });
+
+  // Hidden corner clicks for Dev Room (5x)
+  let cornerClicks = 0;
+  document.querySelector('.corner-hit').addEventListener('click', ()=>{
+    cornerClicks++;
+    if(cornerClicks >= 5){
+      state.devRoom = !state.devRoom;
+      devroom.classList.toggle('show', state.devRoom);
+      cornerClicks = 0;
+    }
+  });
+
+  // Konami Code detection -> anime portrait overlay (simple)
+  const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  let konamiPos = 0;
+  window.addEventListener('keydown', (e)=>{
+    const key = e.key.toLowerCase();
+    const expected = konami[konamiPos].toLowerCase();
+    if(key === expected){ konamiPos++; if(konamiPos === konami.length){ triggerKonami(); konamiPos = 0; } }
+    else konamiPos = (key === konami[0].toLowerCase()) ? 1 : 0;
+  });
+  function triggerKonami(){
+    // show overlay wink (simple framed div)
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '10%';
+    overlay.style.zIndex = 99999;
+    overlay.style.border = '8px solid rgba(255,255,255,0.06)';
+    overlay.style.borderRadius = '12px';
+    overlay.style.background = 'linear-gradient(180deg,#200a20,#180118)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.fontFamily = 'var(--mono)';
+    overlay.style.color = 'var(--accent)';
+    overlay.style.fontSize = '20px';
+    overlay.textContent = '✨ Anime Portrait Overlay ✨ (Konami)';
+    document.body.appendChild(overlay);
+    setTimeout(()=>overlay.remove(), 2500);
+    playBeep(1200,0.12,'sine',0.2);
+  }
+
+  // Insert coin typing detection
+  let typedBuffer = '';
+  window.addEventListener('keydown', (e)=>{
+    if(e.key.length === 1) {
+      typedBuffer += e.key.toLowerCase();
+      if(typedBuffer.length > 20) typedBuffer = typedBuffer.slice(-20);
+      if(typedBuffer.includes('insert coin')){
+        state.credits++;
+        creditsEl.textContent = state.credits;
+        typedBuffer = '';
+        playBeep(880,0.06,'square',0.22);
+        // if credits>0, enable Hardcore Mode toggle
+        if(state.credits > 0) {
+          state.hardcore = true;
+          dbgMode.textContent = 'Hardcore Mode';
+          playBeep(480,0.12,'saw',0.18);
+        }
+      }
+    }
+  });
+
+  // Ghost Ball activation (Shift+G)
+  function activateGhostBall(){
+    state.ghostBall = true;
+    playBeep(1200,0.12,'sine',0.2);
+    setTimeout(()=>{ state.ghostBall = false; }, 10_000); // 10s
+  }
+
+  // START / STOP
+  function toggleStart(){
+    state.running = !state.running;
+    startBtn.textContent = state.running ? '⏸ Pause' : '▶ Start (Enter)';
+    if(state.running) {
+      // ensure audio permission via init
+      initAudio();
+      // reset scoreboard etc
+      if(!state.running) state.score = 0;
+    }
+    if(state.running) playBeep(740,0.06,'square',0.14)
+  }
+  startBtn.addEventListener('click', toggleStart);
+
+  // Save button
+  document.getElementById('saveBtn').addEventListener('click', ()=>{
+    localStorage.setItem('rehan_high', String(state.high));
+    playBeep(600,0.06,'square',0.12);
+  });
+
+  // Housekeeping via requestIdleCallback
+  function idleHousekeeping(deadline){
+    // trim trails, persist score occasionally
+    if(state.score > state.high){ state.high = state.score; highEl.textContent = state.high; }
+    // update debug
+    dbgEntities.textContent = entities.length;
+    dbgHit.textContent = hitboxes;
+    // queue again
+    requestIdleCallback(idleHousekeeping, {timeout:2000});
+  }
+  if('requestIdleCallback' in window) requestIdleCallback(idleHousekeeping, {timeout:1000});
+
+  /* ==========
+     Game Entities / Physics
+     ========== */
+  const W = ()=>canvas.width / (window.devicePixelRatio||1);
+  const H = ()=>canvas.height / (window.devicePixelRatio||1);
+
+  // Ball
+  const ball = {
+    x: 200, y: 300, r: 8,
+    vx: 0, vy:0,
+    trail: [],
+    trailMax: 20,
+    kicked:false,
+    lastTapAt:0
+  };
+
+  // Keeper (kiper pseudo-AI)
+  const keeper = {
+    x: W()/1.2, y: H()/2, w: 12, h:30,
+    vx:0,
+    speed: 2.2
+  };
+
+  // Goal area for scoring
+  const goal = { x: W()-40, y: H()/2 - 50, w: 10, h: 100 };
+
+  // Entities for debug
+  const entities = [ball, keeper];
+  let hitboxes = 0;
+
+  // Combo logic
+  let comboMultiplier = 1;
+  let comboExpire = 0;
+  function hitBallTap(){
+    const now = performance.now();
+    if(now - ball.lastTapAt < 800){
+      comboMultiplier = Math.min(comboMultiplier*2, 8);
+    } else {
+      comboMultiplier = 1;
+    }
+    ball.lastTapAt = now;
+    // reward points
+    const pts = 10 * comboMultiplier;
+    addScore(pts);
+    // ASCII flare effect via small visual (handled in render)
+    playBeep(900 + Math.random()*200, 0.06, 'square', 0.14);
+    comboEl.textContent = 'x' + comboMultiplier;
+    comboExpire = now + 1500;
+  }
+
+  function addScore(n){
+    state.score += n;
+    scoreEl.textContent = state.score;
+    if(state.score > state.high){ state.high = state.score; highEl.textContent = state.high; }
+    // small sound
+    playScore();
+  }
+
+  // Kick action - keyboard space/do drag
+  function kickAction(){
+    if(!state.running) return;
+    if(!ball.kicked){
+      // kick from current player pos: apply forward vector to right
+      ball.vx = 6 + (state.hardcore?2:0);
+      ball.vy = (Math.random()-0.5) * 4;
+      ball.kicked = true;
+      playKick();
+    } else {
+      // if already kicked, attempt to "tap" for combo
+      const now = performance.now();
+      if(now - ball.lastTapAt > 50){ hitBallTap(); }
+    }
+  }
+
+  // Physics and simple keeper AI
+  function updatePhysics(dt){
+    const gravity = 0.02;
+    // ball physics
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+    ball.vy += gravity * dt;
+
+    // walls bounce
+    if(ball.y < 10){ ball.y = 10; ball.vy *= -0.5; }
+    if(ball.y > H()-10){ ball.y = H()-10; ball.vy *= -0.6; }
+
+    // floor friction
+    ball.vx *= 0.999;
+
+    // trail push
+    ball.trail.push({x:ball.x, y:ball.y, t: performance.now()});
+    if(ball.trail.length > ball.trailMax) ball.trail.shift();
+
+    // Keeper AI tries to move to predicted intercept
+    const pred = predictIntercept();
+    const targetY = Math.max(20, Math.min(H()-20, pred.y));
+    const diff = targetY - keeper.y;
+    const speed = keeper.speed * (state.hardcore ? 1.6 : 1);
+    keeper.vx = 0;
+    keeper.y += Math.sign(diff) * Math.min(Math.abs(diff), speed * dt);
+
+    // Collision with keeper - simple AABB vs circle
+    const dx = Math.abs(ball.x - keeper.x);
+    const dy = Math.abs(ball.y - keeper.y);
+    if(dx < ball.r + keeper.w && dy < ball.r + keeper.h/2){
+      // bounce
+      ball.vx *= -0.6;
+      ball.vy = -3 + (Math.random()-0.5)*2;
+      ball.x = keeper.x - (ball.r + keeper.w);
+      // penalize or block scoring
+      playBeep(200,0.06,'square',0.3);
+    }
+
+    // scoring - if ball enters goal region
+    if(ball.x > goal.x && ball.y > goal.y && ball.y < goal.y + goal.h){
+      addScore(100 * (state.ghostBall?2:1));
+      resetBall();
+    }
+
+    // keep in bounds left side
+    if(ball.x < 10){ ball.x = 10; ball.vx = Math.abs(ball.vx)*0.6; }
+
+    // trail decay in requestIdle maybe
+  }
+
+  // Predict intercept simple linear proj
+  function predictIntercept(){
+    const timeToRight = (keeper.x - ball.x) / (ball.vx || 0.0001);
+    const y = ball.y + (ball.vy * Math.max(0, timeToRight));
+    return {x: keeper.x, y};
+  }
+
+  function resetBall(){
+    ball.x = 120;
+    ball.y = H()/2 + (Math.random()-0.5)*40;
+    ball.vx = 0; ball.vy = 0; ball.kicked = false;
+    ball.trail = [];
+  }
+
+  // Rendering
+  let lastFrame = performance.now();
+  let fpsCounter = {lastTick:performance.now(), frames:0, fps:0};
+  function render(now){
+    const dt = Math.min(32, now - lastFrame) / (1000/60);
+    lastFrame = now;
+
+    // rAF loop only acts when running; but we still render to show idle scene
+    ctx.fillStyle = '#06060a';
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    // draw arena background based on skin
+    const w = W(), h = H();
+    if(state.skins[state.skinIndex] === 'grass'){
+      // tiled pixel-ish grass
+      for(let x=0;x<w;x+=24){
+        for(let y=0;y<h;y+=24){
+          ctx.fillStyle = ( (x+y)%48===0 ? '#0b2a0b' : '#0a260a' );
+          ctx.fillRect(x,y,24,24);
+        }
+      }
+    } else if(state.skins[state.skinIndex] === 'asphalt'){
+      ctx.fillStyle = '#202028';
+      ctx.fillRect(0,0,w,h);
+      // stripes
+      for(let y=0;y<h;y+=16){ ctx.fillStyle = y%32===0 ? '#222' : '#1a1a1a'; ctx.fillRect(0,y,w,8); }
+    } else {
+      // neon grid
+      ctx.fillStyle = '#030310';
+      ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle = 'rgba(57,255,20,0.06)';
+      ctx.lineWidth = 1;
+      for(let x=0;x<w;x+=32){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+      for(let y=0;y<h;y+=32){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+    }
+
+    // draw goal
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+
+    // draw keeper
+    ctx.fillStyle = '#e6e6e6';
+    ctx.fillRect(keeper.x - keeper.w/2, keeper.y - keeper.h/2, keeper.w, keeper.h);
+
+    // draw ball trail (afterimage)
+    for(let i=0;i<ball.trail.length;i++){
+      const t = ball.trail[i];
+      const age = (performance.now() - t.t)/1000;
+      const alpha = Math.max(0, 0.9 - i/ball.trail.length);
+      ctx.fillStyle = `rgba(255,255,255,${alpha*0.12})`;
+      ctx.fillRect(t.x - ball.r/2, t.y - ball.r/2, ball.r, ball.r);
+    }
+
+    // ghost ball effect
+    if(state.ghostBall){
+      ctx.fillStyle = 'rgba(255,90,120,0.18)';
+      ctx.fillRect(ball.x-ball.r*1.5, ball.y-ball.r*1.5, ball.r*3, ball.r*3);
+    }
+
+    // draw ball
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(ball.x - ball.r, ball.y - ball.r, ball.r*2, ball.r*2);
+
+    // draw aim vector if dragging
+    if(dragging && dragStart){
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.beginPath();
+      ctx.moveTo(dragStart.x, dragStart.y);
+      ctx.lineTo(dragStart.x + aimVector.x, dragStart.y + aimVector.y);
+      ctx.stroke();
+    }
+
+    // HUD overlays shadows
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(10,10,200,50);
+
+    // ASCII flare visual when combo triggered
+    if(performance.now() < comboExpire){
+      ctx.font = '20px ' + getComputedStyle(document.documentElement).getPropertyValue('--mono');
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillText('*** ASCII FLARE ***', w/2 - 80, 40);
+    }
+
+    // scanline overlay - simulate CRT by drawing translucent lines
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    for(let y=0;y<h;y+=3) ctx.fillRect(0,y,w,1);
+
+    // update debug fps
+    fpsCounter.frames++;
+    if(now - fpsCounter.lastTick > 500){
+      fpsCounter.fps = Math.round((fpsCounter.frames*1000)/(now-fpsCounter.lastTick));
+      fpsCounter.lastTick = now;
+      fpsCounter.frames = 0;
+      dbgFPS.textContent = fpsCounter.fps;
+    }
+
+    // update HUD text nodes
+    // (we keep DOM updates minimal; only update when changed)
+    scoreEl.textContent = state.score;
+    highEl.textContent = state.high;
+    creditsEl.textContent = state.credits;
+
+    // dev indicators
+    dbgEntities.textContent = entities.length;
+    dbgHit.textContent = hitboxes;
+
+    // single rAF loop scheduling
+    if(state.running) {
+      // update physics a few times depending on dt
+      updatePhysics(1 * (state.hardcore ? 1.4 : 1));
+    } else {
+      // idle slight drift
+      ball.x += Math.cos(now/1000) * 0.1;
+    }
+
+    // queue next frame
+    window.requestAnimationFrame(render);
+  }
+
+  // start loop
+  window.requestAnimationFrame(render);
+
+  // Click/tap on ball for combo
+  canvas.addEventListener('click', (e)=>{
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const dx = cx - ball.x;
+    const dy = cy - ball.y;
+    if(Math.hypot(dx,dy) < 20){
+      hitBallTap();
+    }
+  });
+
+  // Save highscore before unload
+  window.addEventListener('beforeunload', ()=> {
+    localStorage.setItem('rehan_high', String(state.high));
+  });
+
+  // Simple periodic saving and housekeeping
+  setInterval(() => {
+    if(state.score > state.high) state.high = state.score;
+    localStorage.setItem('rehan_high', String(state.high));
+  }, 5000);
+
+  // Expose some controls for debug
+  window.rehan = { state, addScore, resetBall };
+
+  // Accessibility: focus ring improvements for keyboard users (already in CSS)
+  // ARIA: ensure dpad has labels (set in HTML)
+
+  // init values
+  applySkin(0);
+  resetBall();
+
+  // Small startup sound cue
+  playBeep(660,0.06,'square',0.12);
+
+  // Provide on-screen instructions for mobile: briefly show credits panel clickable to insert coin
+  creditsPanel.addEventListener('click', ()=>{
+    state.credits++;
+    creditsEl.textContent = state.credits;
+    playBeep(880,0.06,'square',0.12);
+  });
+
+  // Provide simple game rules via alert on first load (accessible)
+  if(!localStorage.getItem('seen_rehan_lab')){
+    // non-blocking visual toast (small)
+    const t = document.createElement('div');
+    t.style.position='fixed';t.style.left='50%';t.style.bottom='18px';t.style.transform='translateX(-50%)';
+    t.style.background='rgba(0,0,0,0.6)';t.style.border='1px solid rgba(255,255,255,0.03)';
+    t.style.padding='8px 12px';t.style.borderRadius='8px';t.style.fontFamily='var(--mono)';
+    t.style.zIndex=99999;t.textContent='Tip: Drag to aim, Space to kick, Enter to start. Type "insert coin" for credits.';
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),8000);
+    localStorage.setItem('seen_rehan_lab','1');
+  }
+
+})();
+</script>
+</body>
+</html>
