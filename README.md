@@ -64,6 +64,8 @@ Semua halaman dibuat dengan HTML + CSS + JavaScript murni (tanpa framework). Tid
 </tr>
   <tr>
   <td><img src="shots/ss%20%287%29.png" alt="Screenshot 7" /></td>
+  <td><img src="shots/ss%20%288%29.png" alt="Screenshot 8" /></td>
+  <td><img src="shots/ss%20%289%29.png" alt="Screenshot 9" /></td>
   </tr>
 </table>
 
