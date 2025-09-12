@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Kelompok 7 — Homepage</title>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+	<style>
+		:root{
+			--bg:#0e1116; --card:#151a22; --muted:#8b95a7; --ring:#2b3340; --text:#e8eefc;
+			--accent:#6ea8fe; --accent-2:#86efac; --accent-3:#fca5a5; --accent-4:#f5d0fe; --accent-5:#fcd34d;
+		}
+		*{box-sizing:border-box}
+		html,body{height:100%}
+		body{margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; background:radial-gradient(1000px 600px at 10% -10%,#1a2230,transparent), radial-gradient(1000px 600px at 110% 10%,#1b1f2a,transparent), var(--bg); color:var(--text)}
+		.wrap{min-height:100%; display:flex; flex-direction:column}
+		header{padding:28px 20px 10px; display:flex; align-items:center; justify-content:space-between; max-width:1280px; margin:0 auto}
+		.brand{display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.2px}
+		.logo{width:36px; height:36px; border-radius:10px; background:conic-gradient(from 220deg,#6ea8fe,#86efac,#fcd34d,#f5d0fe,#6ea8fe); box-shadow:0 0 0 3px #ffffff08 inset, 0 8px 30px #00000040}
+		.muted{color:var(--muted)}
+		main{flex:1; padding:24px 20px 40px}
+		.container{max-width:1280px; margin:0 auto}
+		.hero{display:grid; grid-template-columns:1fr; gap:28px; align-items:center; justify-items:center}
+		.hero h1{margin:0; font-size:clamp(28px,4vw,44px); line-height:1.05}
+		.hero p{margin:10px 0 0; color:var(--muted); font-size:clamp(14px,1.6vw,16px)}
+		.hero-card{background:linear-gradient(180deg,#ffffff06,#00000020), var(--card); border:1px solid #ffffff10; border-radius:16px; padding:18px 18px; box-shadow:0 12px 40px #00000040}
+		.hero-card{align-self:center; justify-self:center; max-width:1200px}
+		.grid{display:flex; gap:12px; margin-top:22px; justify-content:center; flex-wrap:nowrap; overflow-x:hidden; padding:6px 6px 10px}
+		@media (max-width:900px){ .hero{grid-template-columns:1fr} }
+		.card{position:relative; display:block; width:100%; max-width:200px; flex:0 0 200px; background:var(--card); border:1px solid #ffffff10; border-radius:16px; padding:16px; overflow:hidden; isolation:isolate; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease}
+		.grid::-webkit-scrollbar{height:10px}
+		.grid::-webkit-scrollbar-track{background:#ffffff10; border-radius:999px}
+		.grid::-webkit-scrollbar-thumb{background:#ffffff2a; border-radius:999px}
+		.card:hover{transform:translateY(-4px); box-shadow:0 16px 50px #00000055; border-color:#ffffff22}
+		.meta{display:flex; align-items:center; justify-content:space-between; margin-top:10px; color:var(--muted); font-size:12px}
+		.name{display:flex; align-items:center; gap:10px; font-weight:600; color:var(--text)}
+		.pill{font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid #ffffff16; background:#ffffff08}
+		a{color:inherit; text-decoration:none}
+		/* Unique badges */
+		.badge{width:52px; height:52px; border-radius:12px; display:grid; place-items:center; color:#0d1117; font-weight:800; letter-spacing:.3px; box-shadow:0 8px 30px #00000040; border:1px solid #ffffff22}
+		.b1{background:linear-gradient(135deg,#6ea8fe,#93c5fd)}
+		.b2{background:linear-gradient(135deg,#86efac,#4ade80)}
+		.b3{background:linear-gradient(135deg,#fca5a5,#fb7185)}
+		.b4{background:linear-gradient(135deg,#f5d0fe,#d8b4fe)}
+		.b5{background:linear-gradient(135deg,#fcd34d,#f59e0b)}
+		/* Decorative blobs per-card */
+		.card::after{content:""; position:absolute; right:-20px; top:-20px; width:120px; height:120px; filter:blur(30px); opacity:.18; z-index:-1; border-radius:50%}
+		.c1::after{background:#6ea8fe}
+		.c2::after{background:#86efac}
+		.c3::after{background:#fca5a5}
+		.c4::after{background:#f5d0fe}
+		.c5::after{background:#fcd34d}
+		footer{padding:20px; text-align:center; color:var(--muted); border-top:1px solid #ffffff10; background:#0f131a}
+		.go{display:inline-flex; align-items:center; gap:8px; margin-top:12px; font-weight:600}
+		.go svg{transition:transform .2s}
+		.card:hover .go svg{transform:translateX(3px)}
+		/* Glow mouse trail */
+		#glowTrail{position:fixed; inset:0; pointer-events:none; z-index:10}
+		#matrixBg{position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.4}
+		.wrap{position:relative; z-index:1}
+		@media (prefers-reduced-motion: reduce){ #glowTrail{display:none} #matrixBg{display:none} }
+
+		/* Mascots */
+		.mascots{position:relative; width:100%; height:180px; margin:26px 0 6px; overflow:hidden}
+		.mascot{position:absolute; bottom:0; left:0; filter:drop-shadow(0 10px 30px rgba(0,0,0,.5)); will-change:transform; transform-origin:bottom center}
+		.mascot .bob{animation:bob 3.2s ease-in-out infinite}
+		.mascot .eye{transform-origin:center; animation:blink 5.5s infinite}
+		.mascot .arm{transform-origin:150px 78px; animation:wave 2.8s ease-in-out infinite}
+		.mascot .shadow{opacity:.35; transform-origin:center; animation:shadowPulse 3.2s ease-in-out infinite}
+		.mascot.d1 .bob{animation-delay:.4s}
+		.mascot.d2 .bob{animation-delay:.8s}
+		.mascot.d3 .bob{animation-delay:1.2s}
+		.mascot.d4 .bob{animation-delay:1.6s}
+		.mascot .wag{transform-origin: 128px 110px; animation:wag 1.4s ease-in-out infinite}
+		.mascot .tilt{transform-origin:center; animation:tilt 3.6s ease-in-out infinite}
+		.mascot .pulse{animation:twinkle 1.6s ease-in-out infinite}
+		@keyframes bob{0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)}}
+		@keyframes shadowPulse{0%,100%{transform:scale(1)} 50%{transform:scale(.92)}}
+		@keyframes blink{0%,5%,6%,100%{transform:scaleY(1)} 5.5%{transform:scaleY(.1)}}
+		@keyframes wave{0%,100%{transform:rotate(0deg)} 50%{transform:rotate(10deg)}}
+		@keyframes wag{0%,100%{transform:rotate(8deg)} 50%{transform:rotate(-8deg)}}
+		@keyframes tilt{0%,100%{transform:rotate(0deg)} 50%{transform:rotate(2.5deg)}}
+		@keyframes twinkle{0%,100%{opacity:1} 50%{opacity:.45}}
+	</style>
+	<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute; width:0; height:0; overflow:hidden">
+		<symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+		</symbol>
+		<symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M12 2v5M12 17v5M2 12h5M17 12h5"/><path d="M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>
+		</symbol>
+	</svg>
+</head>
+<body>
+	<div class="wrap">
+		<header>
+			<div class="brand">
+				<div class="logo" aria-hidden="true"></div>
+				<div>
+					Kelompok 7<br>
+					<span class="muted" style="font-weight:600">Homepage</span>
+				</div>
+			</div>
+			<div class="muted">Simple. Clean. Fast.</div>
+		</header>
+		<main>
+			<div class="container">
+				<div class="hero">
+					<div>
+						<h1>Selamat datang di ruang karya kami</h1>
+						<p>Jelajahi proyek masing-masing anggota. Tiap kartu dibuat unik—warna, lencana, dan aksen—namun tetap satu gaya yang rapi.</p>
+					</div>
+					<div class="hero-card">
+						<div class="muted">Anggota</div>
+						<div class="grid">
+							<a class="card c1" href="Fathir/index.html" target="_blank" rel="noopener" aria-label="Masuk ke halaman Fathir">
+								<div class="badge b1" aria-hidden="true">F.</div>
+								<div class="name">Fathir <span class="pill">Front-end</span></div>
+								<div class="meta"><span class="muted">Eksplor UI</span><span class="go">Kunjungi <svg width="16" height="16"><use href="#i-arrow"/></svg></span></div>
+							</a>
+							<a class="card c2" href="Rehan/index.html" target="_blank" rel="noopener" aria-label="Masuk ke halaman Rehan">
+								<div class="badge b2" aria-hidden="true">R.</div>
+								<div class="name">Rehan <span class="pill">Full-stack</span></div>
+								<div class="meta"><span class="muted">API & logic</span><span class="go">Kunjungi <svg width="16" height="16"><use href="#i-arrow"/></svg></span></div>
+							</a>
+							<a class="card c3" href="Riki/index.html" target="_blank" rel="noopener" aria-label="Masuk ke halaman Riki">
+								<div class="badge b3" aria-hidden="true">Ri.</div>
+								<div class="name">Riki <span class="pill">Design</span></div>
+								<div class="meta"><span class="muted">Brand & UX</span><span class="go">Kunjungi <svg width="16" height="16"><use href="#i-arrow"/></svg></span></div>
+							</a>
+							<a class="card c4" href="Rustaman/index.html" target="_blank" rel="noopener" aria-label="Masuk ke halaman Rustaman">
+								<div class="badge b4" aria-hidden="true">Ru.</div>
+								<div class="name">Rustaman <span class="pill">Prototype</span></div>
+								<div class="meta"><span class="muted">Mini OS</span><span class="go">Kunjungi <svg width="16" height="16"><use href="#i-arrow"/></svg></span></div>
+							</a>
+							<a class="card c5" href="Salman/index.html" target="_blank" rel="noopener" aria-label="Masuk ke halaman Salman">
+								<div class="badge b5" aria-hidden="true">S.</div>
+								<div class="name">Salman <span class="pill">Testing</span></div>
+								<div class="meta"><span class="muted">QA & Docs</span><span class="go">Kunjungi <svg width="16" height="16"><use href="#i-arrow"/></svg></span></div>
+							</a>
+						</div>
+					</div>
+					<!-- Cute mascots below members -->
+					<div class="mascots" aria-hidden="true">
+						<!-- Blob friend -->
+						<svg class="mascot m-blob d0" width="170" height="140" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg">
+							<defs>
+								<linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1">
+									<stop offset="0%" stop-color="#8ab4ff"/>
+									<stop offset="100%" stop-color="#b9e6ff"/>
+								</linearGradient>
+							</defs>
+							<ellipse class="shadow" cx="100" cy="140" rx="40" ry="10" fill="#000"/>
+							<g class="bob">
+								<path d="M60 120c-18-12-22-40-8-58 14-18 40-26 60-18 10 4 18 12 24 20 10 14 10 34 2 48-6 10-16 18-28 20-12 2-24 2-35-2-5-2-10-5-15-10z" fill="url(#gBody)" stroke="#ffffff40" stroke-width="2"/>
+								<g class="arm"><path d="M140 78 q14 6 10 20" stroke="#a5d8ff" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="152" cy="98" r="4" fill="#a5d8ff"/></g>
+								<circle class="eye" cx="92" cy="88" r="4" fill="#0d1117"/>
+								<circle class="eye" cx="116" cy="86" r="4" fill="#0d1117"/>
+								<path d="M96 102 q8 6 16 0" stroke="#0d1117" stroke-width="3" fill="none" stroke-linecap="round"/>
+								<circle cx="84" cy="98" r="3" fill="#ffb4c2"/>
+								<circle cx="132" cy="96" r="3" fill="#ffb4c2"/>
+							</g>
+						</svg>
+
+						<!-- Ghost -->
+						<svg class="mascot m-ghost d1" width="130" height="130" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+							<ellipse class="shadow" cx="80" cy="140" rx="34" ry="9" fill="#000"/>
+							<g class="bob">
+								<path d="M40 120 q0-60 40-60t40 60 q-10-10-20 0 q-10-10-20 0 q-10-10-20 0 q-10-10-20 0z" fill="#ffffffee" stroke="#ffffff55"/>
+								<circle class="eye" cx="70" cy="85" r="4" fill="#0d1117"/>
+								<circle class="eye" cx="90" cy="85" r="4" fill="#0d1117"/>
+								<path d="M72 98 q8 6 16 0" stroke="#0d1117" stroke-width="3" fill="none" stroke-linecap="round"/>
+							</g>
+						</svg>
+
+						<!-- Star buddy -->
+						<svg class="mascot m-star d2" width="130" height="130" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+							<ellipse class="shadow" cx="80" cy="140" rx="32" ry="9" fill="#000"/>
+							<g class="bob tilt">
+								<g class="pulse">
+									<polygon points="80,20 96,62 140,62 104,88 116,130 80,106 44,130 56,88 20,62 64,62" fill="#fcd34d" stroke="#ffffff55"/>
+								</g>
+								<circle class="eye" cx="72" cy="80" r="4" fill="#0d1117"/>
+								<circle class="eye" cx="92" cy="80" r="4" fill="#0d1117"/>
+								<path d="M74 94 q6 5 12 0" stroke="#0d1117" stroke-width="3" fill="none" stroke-linecap="round"/>
+							</g>
+						</svg>
+
+						<!-- Cat head -->
+						<svg class="mascot m-cat d3" width="150" height="130" viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg">
+							<ellipse class="shadow" cx="90" cy="138" rx="36" ry="9" fill="#000"/>
+							<g class="bob">
+								<path d="M50 120 q-10-40 20-56 l10-16 14 14 q30-10 40 30 q0 28-40 34 q-30 4-44-6z" fill="#ffe4b5" stroke="#ffffff55"/>
+								<path d="M54 96 l18-14 l6 10 z" fill="#fda4af" opacity=".8"/>
+								<path d="M120 88 l-16-12 l-6 10 z" fill="#fda4af" opacity=".8"/>
+								<circle class="eye" cx="78" cy="96" r="4" fill="#0d1117"/>
+								<circle class="eye" cx="104" cy="96" r="4" fill="#0d1117"/>
+								<path d="M84 110 q6 4 12 0" stroke="#0d1117" stroke-width="3" fill="none" stroke-linecap="round"/>
+								<!-- tail -->
+								<g class="wag"><path d="M128 108 q20 6 18 24" stroke="#ffe4b5" stroke-width="8" fill="none" stroke-linecap="round"/></g>
+							</g>
+						</svg>
+
+						<!-- Robot -->
+						<svg class="mascot m-bot d4" width="150" height="130" viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg">
+							<ellipse class="shadow" cx="90" cy="138" rx="36" ry="9" fill="#000"/>
+							<g class="bob">
+								<rect x="54" y="70" width="72" height="54" rx="12" fill="#c7d2fe" stroke="#ffffff55"/>
+								<rect x="46" y="90" width="88" height="10" rx="5" fill="#94a3b8" opacity=".6"/>
+								<circle class="eye" cx="78" cy="92" r="4" fill="#0d1117"/>
+								<circle class="eye" cx="102" cy="92" r="4" fill="#0d1117"/>
+								<rect x="80" y="104" width="16" height="6" rx="3" fill="#0d1117"/>
+								<!-- antenna -->
+								<line x1="90" y1="66" x2="90" y2="54" stroke="#94a3b8" stroke-width="3"/>
+								<circle class="pulse" cx="90" cy="50" r="5" fill="#fca5a5"/>
+							</g>
+						</svg>
+					</div>
+				</div>
+			</div>
+		</main>
+		<footer>
+			Dibuat dengan <svg width="16" height="16" style="vertical-align:-2px"><use href="#i-spark"/></svg> oleh Kelompok 7. © 2025
+		</footer>
+	</div>
+			<canvas id="matrixBg"></canvas>
+			<canvas id="glowTrail"></canvas>
+			<script>
+				// Matrix rain background (DPR-aware, ~30fps)
+				(function(){
+					const cvs=document.getElementById('matrixBg'); if(!cvs) return; const ctx=cvs.getContext('2d');
+					let w=0,h=0,dpr=1,cols=0,fontSize=16,drops=[]; let running=true; let last=0;
+					const chars='アイウエオカキクケコｱｲｳｴｵ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+					function resize(){
+						dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+						w=cvs.width=Math.floor(innerWidth*dpr);
+						h=cvs.height=Math.floor(innerHeight*dpr);
+						cvs.style.width=innerWidth+'px'; cvs.style.height=innerHeight+'px';
+						ctx.setTransform(1,0,0,1,0,0);
+						fontSize=Math.max(12,Math.floor(16*dpr));
+						ctx.font=`${fontSize}px monospace`; ctx.textBaseline='top';
+						cols=Math.floor(w/(fontSize*0.9));
+						drops=Array(cols).fill(0).map(()=> Math.floor(Math.random()*h/fontSize));
+					}
+					resize(); addEventListener('resize', resize);
+					function step(ts){
+						if(!running){ requestAnimationFrame(step); return; }
+						if(ts-last<33){ requestAnimationFrame(step); return; }
+						last=ts;
+						ctx.fillStyle='rgba(14,17,22,0.15)'; ctx.fillRect(0,0,w,h);
+						for(let i=0;i<drops.length;i++){
+							const x=i*(fontSize*0.9);
+							const y=drops[i]*fontSize;
+							const ch=chars[(Math.random()*chars.length)|0];
+							ctx.fillStyle='rgba(134,239,172,0.9)';
+							ctx.fillText(ch,x,y);
+							if(y>h && Math.random()>0.975) drops[i]=0; else drops[i]++;
+						}
+						requestAnimationFrame(step);
+					}
+					requestAnimationFrame(step);
+					document.addEventListener('visibilitychange',()=>{ running=document.visibilityState==='visible'; });
+				})();
+			</script>
+			<script>
+				// Mascots walking animation
+				(function(){
+					const cont=document.querySelector('.mascots'); if(!cont) return;
+					if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+					const nodes=[...cont.querySelectorAll('.mascot')]; if(!nodes.length) return;
+					function nodeWidth(el){
+						let w = el.getBoundingClientRect().width;
+						if(!w){ const attr = parseFloat(el.getAttribute('width')||'0'); if(attr) w = attr; }
+						if(!w){ const vb = (el.getAttribute('viewBox')||'').split(' '); if(vb.length===4) w = parseFloat(vb[2])||120; }
+						return w || 120;
+					}
+					const walkers=nodes.map((el)=>({
+						el,
+						x:0,
+						w: nodeWidth(el),
+						dir: Math.random()<.5?-1:1,
+						base: 40+Math.random()*60, // base speed px/s
+						speed: 0,
+						mode: 'walk',
+						modeLeft: 1.5+Math.random()*2.5, // seconds
+						yMax: 20 + Math.random()*60, // max climb height
+						y: 0, ydir: (Math.random()<.5?-1:1), vbase: 20+Math.random()*40, v: 0,
+						yBase: Math.random()*8, // subtle bobbing baseline
+						hopT: 0, hopDur: 0.6,
+						inited:false
+					}));
+					function layout(){
+						const rect=cont.getBoundingClientRect();
+						walkers.forEach(w=>{
+							w.w = nodeWidth(w.el);
+							if(!w.inited){
+								w.x = Math.random()*Math.max(0, rect.width - w.w);
+								w.y = -Math.random()*w.yMax;
+								w.inited=true;
+							}
+						});
+					}
+					function init(){ layout(); }
+					if(document.readyState==='complete') init(); else addEventListener('load', init);
+					addEventListener('resize', layout);
+					function pickMode(w){
+						const r=Math.random();
+						if(r<0.25){ w.mode='sprint'; w.modeLeft=0.8+Math.random()*1.2; }
+						else if(r<0.40){ w.mode='hop'; w.hopT=0; w.hopDur=0.45+Math.random()*0.45; w.modeLeft=w.hopDur; }
+						else if(r<0.55){ w.mode='slow'; w.modeLeft=1+Math.random()*1.2; }
+						else { w.mode='walk'; w.modeLeft=1.5+Math.random()*3; }
+					}
+					// initialize modes
+					walkers.forEach(w=>{ pickMode(w); w.speed=w.base*(0.8+Math.random()*0.6); });
+					let last=performance.now(); let running=true;
+					function tick(now){
+						if(!running){ requestAnimationFrame(tick); return; }
+						const rect=cont.getBoundingClientRect();
+						const dt=Math.min(50, now-last)/1000; last=now;
+						walkers.forEach(w=>{
+							// state timer
+							w.modeLeft -= dt; if(w.modeLeft<=0){
+								// occasionally change direction on state change
+								if(Math.random()<0.25) w.dir *= -1;
+								pickMode(w);
+							}
+							// target speed based on mode
+							let target = w.base;
+							if(w.mode==='sprint') target = w.base*2.2;
+							else if(w.mode==='walk') target = w.base*(0.9+Math.sin(now*0.002 + w.x*0.01)*0.18);
+							else if(w.mode==='hop') target = w.base*1.2;
+							else if(w.mode==='slow') target = w.base*0.35;
+							// ease speed
+							w.speed += (target - w.speed) * Math.min(1, dt*4);
+							// vertical target speed
+							let vTarget = w.vbase * (w.mode==='sprint' ? 1.6 : (w.mode==='slow' ? 0.6 : 1.0));
+							w.v += (vTarget - w.v) * Math.min(1, dt*3.2);
+							// integrate position
+							w.x += w.dir * w.speed * dt;
+							w.y += w.ydir * w.v * dt * -1; // y negative is up
+							// bounds & bounce
+							if(w.x<=0){ w.x=0; w.dir=1; w.mode='walk'; w.modeLeft=0.6+Math.random()*1.0; }
+							else if(w.x + w.w >= rect.width){ w.x = Math.max(0, rect.width - w.w); w.dir=-1; w.mode='walk'; w.modeLeft=0.6+Math.random()*1.0; }
+							// vertical bounds
+							if(w.y < -w.yMax){ w.y = -w.yMax; w.ydir = 1; if(Math.random()<0.35){ w.mode='slow'; w.modeLeft=0.4+Math.random()*0.6; } }
+							if(w.y > 0){ w.y = 0; w.ydir = -1; if(Math.random()<0.35){ w.mode='slow'; w.modeLeft=0.4+Math.random()*0.6; } }
+							// occasional spontaneous turn
+							if(Math.random()<0.002) w.dir*=-1;
+							// vertical offset for hop + subtle lane wobble
+							let y = w.y - w.yBase;
+							if(w.mode==='hop'){
+								w.hopT += dt; const p=Math.min(1, w.hopT / w.hopDur);
+								y += -14 * Math.sin(Math.PI * p);
+							}
+							else if(w.mode==='slow'){
+								y += -2 * Math.sin(now*0.01);
+							}
+							// separation: avoid clustering
+							for(let i=0;i<walkers.length;i++){
+								const a=walkers[i]; if(a===w) continue;
+								const dx=a.x - w.x; const dy=(a.y - w.y);
+								const minX=80, minY=26;
+								if(Math.abs(dx)<minX && Math.abs(dy)<minY){
+									const push=(minX-Math.abs(dx))*0.6*dt; const sign=dx>=0?-1:1;
+									w.x += sign*push; // subtle push apart
+								}
+							}
+							// slight tilt toward movement angle
+							const ang = Math.atan2(-w.ydir*w.v, w.dir*w.speed+1e-3);
+							const deg = Math.max(-8, Math.min(8, ang*57.2958*0.6));
+							const flip = w.dir<0 ? ' scaleX(-1)' : '';
+							w.el.style.transform = `translate3d(${Math.round(w.x)}px,${Math.round(y)}px,0) rotate(${deg.toFixed(2)}deg)${flip}`;
+						});
+						requestAnimationFrame(tick);
+					}
+					requestAnimationFrame(tick);
+					document.addEventListener('visibilitychange',()=>{ running=document.visibilityState==='visible'; if(running) last=performance.now(); });
+				})();
+			</script>
+			<script>
+				// Glow mouse trail (canvas, additive blend)
+				(function(){
+					const canvas = document.getElementById('glowTrail');
+					const ctx = canvas.getContext('2d');
+					let w=0,h=0,dpr=1; let running=true;
+					function resize(){
+						dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+						w = canvas.width = Math.floor(innerWidth*dpr);
+						h = canvas.height = Math.floor(innerHeight*dpr);
+						canvas.style.width = innerWidth+'px';
+						canvas.style.height = innerHeight+'px';
+						ctx.setTransform(1,0,0,1,0,0);
+					}
+					resize(); addEventListener('resize', resize);
+					const trail=[]; const MAX_POINTS=140; const LIFE=600; // ms
+					let lastT=0;
+					function addPoint(x,y){
+						const now=performance.now();
+						trail.push({x:x*dpr, y:y*dpr, t:now});
+						while(trail.length>MAX_POINTS) trail.shift();
+					}
+					window.addEventListener('mousemove', e=>{ addPoint(e.clientX,e.clientY); });
+					// nice touch support
+					window.addEventListener('touchmove', e=>{ const t=e.touches[0]; if(t) addPoint(t.clientX,t.clientY); }, {passive:true});
+					function draw(){
+						if(!running) return; requestAnimationFrame(draw);
+						const now=performance.now();
+						ctx.clearRect(0,0,w,h);
+						ctx.globalCompositeOperation='lighter';
+						for(let i=0;i<trail.length;i++){
+							const p=trail[i]; const age=now-p.t; if(age>LIFE) continue;
+							const a = 1 - age/LIFE;
+							const r = 26 + 24*(a);
+							// gradient glow
+							const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+							// color mix: accent blue to soft pink
+							g.addColorStop(0, `rgba(110,168,254,${0.22*a})`);
+							g.addColorStop(0.6, `rgba(245,208,254,${0.14*a})`);
+							g.addColorStop(1, 'rgba(0,0,0,0)');
+							ctx.fillStyle=g;
+							ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
+						}
+						// prune old
+						for(let i=trail.length-1;i>=0;i--){ if(now-trail[i].t>LIFE) trail.splice(i,1); }
+					}
+					draw();
+					// pause when tab hidden
+					document.addEventListener('visibilitychange',()=>{ running = document.visibilityState==='visible'; if(running) draw(); });
+				})();
+			</script>
+</body>
+</html>
